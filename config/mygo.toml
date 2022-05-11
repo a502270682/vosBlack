@@ -1,0 +1,29 @@
+#环境
+env = "testing"
+
+app_name = "my_go"
+
+http_port = ":8081"
+
+[mysql]
+    [mysql.master]
+    user = "root"
+    password = ""
+    host = "127.0.0.1"#"192.168.50.196" # docker访问本地机
+    port = 3306
+    db = "test"
+    max_idle = 100
+    max_open = 200
+    name = ""
+    debug = true
+
+[redis]
+    [redis.default]
+    name = "default"
+    addr = "redis.staging.svc.cluster.local:6379" #staging-staging-shared-001.sownv4.0001.apse1.cache.amazonaws.com
+    db = 0
+    maxRetries = 3
+    dialTimeout = 5
+    readTimeout = 2
+    writeTimeout = 2
+    poolSize = 10

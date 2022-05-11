@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vosBlack-deployment
+  labels:
+    app: vosBlack
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: vosBlack
+  template:
+    metadata:
+      labels:
+        app: vosBlack
+    spec:
+      containers:
+        - name: vosBlack
+          image: vosBlack:v3
+          imagePullPolicy: IfNotPresent # 优先用本地，如果本地没有再去下载
+          command: ["/vosBlack"] # 如果存在，在启动镜像时会覆盖dockerfile中的cmd
+          args: ["-c", "/etc/config/vosBlack.toml"]
+          ports:
+            - containerPort: 8090
+              name: vosBlack-web
+          volumeMounts:
+            - name: vosBlack-conf-volume
+              mountPath: /etc/config
+      volumes:
+        - name: vosBlack-conf-volume
+          configMap:
+            name: vosBlack-conf
+            items:
+            - key: vosBlack-conf
+              path: vosBlack.toml
