@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"context"
-	"myGo/adapter/error_code"
-	"myGo/proto"
+	"vosBlack/adapter/error_code"
+	"vosBlack/proto"
 )
 
 func SchoolListHandler(ctx context.Context, req *proto.SchoolListReq, rsp *proto.SchoolListRsp) *error_code.ReplyError {

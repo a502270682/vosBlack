@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mygo-deployment
+  name: vosBlack-deployment
   labels:
-    app: mygo
+    app: vosBlack
 spec:
   replicas: 1
   strategy:
@@ -13,28 +13,28 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: mygo
+      app: vosBlack
   template:
     metadata:
       labels:
-        app: mygo
+        app: vosBlack
     spec:
       containers:
-        - name: mygo
-          image: mygo:v3
+        - name: vosBlack
+          image: vosBlack:v3
           imagePullPolicy: IfNotPresent # 优先用本地，如果本地没有再去下载
-          command: ["/myGo"] # 如果存在，在启动镜像时会覆盖dockerfile中的cmd
-          args: ["-c", "/etc/config/mygo.toml"]
+          command: ["/vosBlack"] # 如果存在，在启动镜像时会覆盖dockerfile中的cmd
+          args: ["-c", "/etc/config/vosBlack.toml"]
           ports:
             - containerPort: 8090
-              name: mygo-web
+              name: vosBlack-web
           volumeMounts:
-            - name: mygo-conf-volume
+            - name: vosBlack-conf-volume
               mountPath: /etc/config
       volumes:
-        - name: mygo-conf-volume
+        - name: vosBlack-conf-volume
           configMap:
-            name: mygo-conf
+            name: vosBlack-conf
             items:
-            - key: mygo-conf
-              path: mygo.toml
+            - key: vosBlack-conf
+              path: vosBlack.toml

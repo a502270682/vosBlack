@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"myGo/adapter/redis"
+	"vosBlack/adapter/redis"
 )
 
 type Config struct {

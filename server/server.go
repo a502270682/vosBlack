@@ -5,10 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli"
-	"myGo/adapter/log"
-	"myGo/adapter/mysql"
-	"myGo/adapter/redis"
-	"myGo/config"
+	"vosBlack/adapter/log"
+	"vosBlack/adapter/mysql"
+	"vosBlack/adapter/redis"
+	"vosBlack/config"
 )
 
 type Server struct {

@@ -2,11 +2,11 @@ package route
 
 import (
 	"context"
-	"myGo/adapter/error_code"
-	"myGo/adapter/log"
 	"net/http"
 	"net/url"
 	"reflect"
+	"vosBlack/adapter/error_code"
+	"vosBlack/adapter/log"
 
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"

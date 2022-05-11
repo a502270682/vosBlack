@@ -1,1 +1,1 @@
-docker build -t mygo:v3 .
+docker build -t vosBlack:v3 .

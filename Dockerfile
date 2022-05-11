@@ -7,11 +7,11 @@ FROM  golang:latest
 #RUN go mod download
 #WORKDIR /test/release
 #ADD build .
-#RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-s -w" -installsuffix cgo -o myGo main.go
+#RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-s -w" -installsuffix cgo -o vosBlack main.go
 
 WORKDIR /root
-COPY /myGo /
-COPY /config/mygo.toml /etc/config/mygo.toml
+COPY /vosBlack /
+COPY /config/vosBlack.toml /etc/config/vosBlack.toml
 
 EXPOSE 8080
-CMD ["/myGo", "-c", "/etc/config/mygo.toml"]
+CMD ["/vosBlack", "-c", "/etc/config/vosBlack.toml"]

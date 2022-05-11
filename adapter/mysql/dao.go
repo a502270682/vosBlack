@@ -3,9 +3,9 @@ package mysql
 import (
 	"flag"
 	"fmt"
-	"myGo/config"
-	"myGo/models"
 	"time"
+	"vosBlack/config"
+	"vosBlack/models"
 
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
@@ -21,7 +21,6 @@ var (
 
 func InitEntityDao(d *gorm.DB) {
 	models.InitUserDao(d)
-	models.InitSchoolDao(d)
 }
 
 func makeDsn(user, password, host, db string, port int) string {

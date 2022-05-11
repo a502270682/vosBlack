@@ -1,4 +1,4 @@
-module myGo
+module vosBlack
 
 go 1.13
 

@@ -10,6 +10,6 @@ if [ -z $VERSION ]; then
     VERSION=$COMMIT
 fi
 
-VerPkg="myGo"
+VerPkg="vosBlack"
 
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build  -o myGo -ldflags "-X ${VerPkg}.Version=$VERSION -X ${VerPkg}.GitCommit=$COMMIT -X ${VerPkg}.BuildTime=${TIME}" "$MAIN_PATH"
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build  -o vosBlack -ldflags "-X ${VerPkg}.Version=$VERSION -X ${VerPkg}.GitCommit=$COMMIT -X ${VerPkg}.BuildTime=${TIME}" "$MAIN_PATH"

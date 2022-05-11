@@ -9,13 +9,13 @@ metadata:
     nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
 spec:
   rules:
-    - host: test.mygo-svc.com
+    - host: test.vosBlack-svc.com
       http:
         paths:
           - path: / #/app(/|$)(.*)
             pathType: Prefix
             backend:
               service:
-                name: mygo-service
+                name: vosBlack-service
                 port:
                   number: 8090

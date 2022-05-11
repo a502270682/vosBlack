@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"math/rand"
-	"myGo/adapter/log"
-	"myGo/server"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+	"vosBlack/adapter/log"
+	"vosBlack/server"
 )
 
 func main() {

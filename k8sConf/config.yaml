@@ -2,9 +2,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   namespace: default
-  name: mygo-conf
+  name: vosBlack-conf
 data:
-  mygo-conf: |-
+  vosBlack-conf: |-
     #环境
     env = "testing"
 

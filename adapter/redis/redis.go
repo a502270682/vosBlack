@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/pkg/errors"
-	"myGo/adapter/log"
 	"time"
+	"vosBlack/adapter/log"
 )
 
 type RedisConf struct {
