@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"vosBlack/adapter/error_code"
 	"vosBlack/adapter/log"
+	"vosBlack/common"
 
 	"github.com/fatih/structs"
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,7 @@ const defaultMemory = 32 * 1024 * 1024
 
 type originFormKey struct{}
 type bindFormKey struct{}
+type ipKey struct{}
 
 var (
 	EmptyStr = ""
@@ -152,7 +154,7 @@ func CreateHandlerFuncWithLogger(method interface{}, l log.Logger) gin.HandlerFu
 		req := reflect.New(reqT)
 		_ = c.Request.ParseForm()
 		_ = c.Request.ParseMultipartForm(defaultMemory)
-
+		ip := c.ClientIP()
 		formValue := c.Request.Form
 		originForm := url.Values{}
 		for k, vs := range formValue {
@@ -183,7 +185,7 @@ func CreateHandlerFuncWithLogger(method interface{}, l log.Logger) gin.HandlerFu
 		c.Request.Form = originForm //把request里面的Form还原为原始form，以便后续使用
 		ctx = context.WithValue(ctx, OriginFormKey, originForm)
 		ctx = context.WithValue(ctx, BindFormKey, formValue)
-
+		ctx = context.WithValue(ctx, common.IPCtxKey, ip)
 		callFieldInit(ctx, req)
 		processReq(ctx, req)
 
