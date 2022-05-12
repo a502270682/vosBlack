@@ -49,7 +49,7 @@ func InitApplyHourListRepo(d *gorm.DB) {
 	}
 }
 
-func GetInitApplyHourListImpl() *ApplyHourListImpl {
+func GetInitApplyHourListImpl() ApplyHourListRepo {
 	return applyHourList
 }
 

@@ -20,6 +20,7 @@ import (
 
 func InitEntityDao(d *gorm.DB) {
 	model.InitApplyHourListRepo(d)
+	model.InitAMobileBlackRepo(d)
 }
 
 func makeDsn(user, password, host, db string, port int) string {
