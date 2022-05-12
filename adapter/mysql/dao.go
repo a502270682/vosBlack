@@ -1,23 +1,25 @@
 package mysql
 
 import (
-	"flag"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 	"time"
 	"vosBlack/config"
+	"vosBlack/model"
 
 	// 引入数据库驱动注册及初始化
-	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
 )
 
-var (
-	ormLog = flag.Bool("ormlog", false, "--ormlog")
-	master *gorm.DB
-)
+//var (
+//	mysqlDb *sql.DB
+//)
 
 func InitEntityDao(d *gorm.DB) {
+	model.InitApplyHourListRepo(d)
 }
 
 func makeDsn(user, password, host, db string, port int) string {
@@ -25,30 +27,32 @@ func makeDsn(user, password, host, db string, port int) string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True", user, password, host, port, db)
 }
 
-func InitializeMainDb(o config.ConnectionConfig) error {
-	masterDB, err := gorm.Open("mysql", makeDsn(o.User, o.Password, o.Host, o.Db, o.Port))
+func InitializeMainDb(o config.ConnectionConfig) (*gorm.DB, error) {
+	db, err := gorm.Open(mysql.Open(makeDsn(o.User, o.Password, o.Host, o.Db, o.Port)), &gorm.Config{
+		NamingStrategy: &schema.NamingStrategy{
+			SingularTable: true,
+		},
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
+		Logger: logger.Default.LogMode(logMode(o.Debug)),
+	})
 	if err != nil {
 		errStr := fmt.Sprintf("failed to open MySQL master db, error=%v", err)
-		return errors.New(errStr)
+		return nil, errors.New(errStr)
 	}
-	master = masterDB
-	if *ormLog {
-		master = masterDB.Debug()
+	mysqlDb, err := db.DB()
+	if err != nil {
+		return nil, err
 	}
-	master.DB().SetMaxIdleConns(o.MaxIdle)
-	master.DB().SetMaxOpenConns(o.MaxOpen)
-	master.SetNowFuncOverride(func() time.Time {
-		return time.Now().UTC()
-	})
-	master.SingularTable(true)
-	// master.SetLogger(gorm.Logger{})
-	return nil
+	mysqlDb.SetMaxIdleConns(o.MaxIdle)
+	mysqlDb.SetMaxOpenConns(o.MaxOpen)
+	return db, nil
 }
 
-func GetClient() *gorm.DB {
-	if master == nil {
-		// return InitializeDao() get global config
-		return nil
+func logMode(debug bool) logger.LogLevel {
+	if debug {
+		return logger.Info
 	}
-	return master
+	return logger.Warn
 }

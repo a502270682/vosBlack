@@ -29,3 +29,7 @@ func (c *RedisClient) redisClientByName(name string) *redis.Client {
 func GetDefaultRedisClient() *redis.Client {
 	return client.redisClientByName(RedisClusterName)
 }
+
+func GetClientByName(name string) *redis.Client {
+	return client.redisClientByName(name)
+}

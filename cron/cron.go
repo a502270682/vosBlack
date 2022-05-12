@@ -17,22 +17,23 @@ func init() {
 	cronCtl.C = cron.New(cron.WithSeconds(), cron.WithLocation(time.Local))
 }
 
-type SchoolJob struct {
+type EnterpriseApplyHourListJob struct {
 	JobName string
 }
 
-func (s *SchoolJob) Run() {
+func (s *EnterpriseApplyHourListJob) Run() {
 	// to something
+
 }
 
 func StartCron() {
 	if cronCtl.C != nil {
 		ctl := cronCtl.C
-		schoolJob := SchoolJob{
+		schoolJob := EnterpriseApplyHourListJob{
 			JobName: "schoolJob",
 		}
 		// every 1:00 am
-		_, err := ctl.AddJob("0 0 1 * * *", &schoolJob)
+		_, err := ctl.AddJob("0 0/1 * * * *", &schoolJob)
 		if err != nil {
 			panic(errors.Wrap(err, fmt.Sprintf("failed to start %s", schoolJob.JobName)))
 		}
