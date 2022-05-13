@@ -38,6 +38,7 @@ type ApplyHourListImpl struct {
 }
 
 type ApplyHourListRepo interface {
+	GetDBForTransaction() *gorm.DB
 	GetsByEnID(ctx context.Context, id int) ([]*EnterpriseApplyHourList, error)
 	GetLatestByEnID(ctx context.Context, id int) (*EnterpriseApplyHourList, error)
 	Upsert(ctx context.Context, entity *EnterpriseApplyHourList) error
@@ -49,8 +50,12 @@ func InitApplyHourListRepo(d *gorm.DB) {
 	}
 }
 
-func GetInitApplyHourListImpl() ApplyHourListRepo {
+func GetApplyHourListImpl() ApplyHourListRepo {
 	return applyHourList
+}
+
+func (a *ApplyHourListImpl) GetDBForTransaction() *gorm.DB {
+	return a.DB
 }
 
 func (a *ApplyHourListImpl) GetsByEnID(ctx context.Context, id int) ([]*EnterpriseApplyHourList, error) {

@@ -22,7 +22,7 @@ type ApplyHourListField struct {
 	Remark         string `json:"remark" gorm:"column:remark"`                     // 备注
 }
 
-func ApplyHourListCacheKey(enID int) string {
+func applyHourListCacheKey(enID int) string {
 	return fmt.Sprintf("vos_black_enterprise_hour_list:%d", enID)
 }
 
@@ -31,7 +31,7 @@ func SetApplyHourListCache(ctx context.Context, enID int, field *ApplyHourListFi
 	if err != nil {
 		return errors.Wrap(err, "marshal apply_field failed")
 	}
-	err = redis.GetDefaultRedisClient().Set(ctx, ApplyHourListCacheKey(enID), string(value), 0).Err()
+	err = redis.GetDefaultRedisClient().Set(ctx, applyHourListCacheKey(enID), string(value), 0).Err()
 	if err != nil {
 		return errors.Wrap(err, "set apply_field failed")
 	}
@@ -39,7 +39,7 @@ func SetApplyHourListCache(ctx context.Context, enID int, field *ApplyHourListFi
 }
 
 func GetApplyHourListCache(ctx context.Context, enID int) (*ApplyHourListField, error) {
-	result, err := redis.GetDefaultRedisClient().Get(ctx, ApplyHourListCacheKey(enID)).Result()
+	result, err := redis.GetDefaultRedisClient().Get(ctx, applyHourListCacheKey(enID)).Result()
 	if err != nil {
 		if err == redis.ErrNil {
 			return nil, nil
@@ -54,6 +54,45 @@ func GetApplyHourListCache(ctx context.Context, enID int) (*ApplyHourListField, 
 	return ret, nil
 }
 
-func UpsertEnterpriseApplyHourList(ctx context.Context, enID int, MbRequestCount, MbHitCount, WnHitCount, MpRequestCount, MpHitCount, GwRequestCount, GwHitCount, FqRequestCount, FqHitCount int64) error {
+func DeleteApplyHourListCache(ctx context.Context, enID int) error {
+	_, err := redis.GetDefaultRedisClient().Del(ctx, applyHourListCacheKey(enID)).Result()
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+// 新建或更新企业近期调用统计
+func UpsertEnterpriseApplyHourList(ctx context.Context, enID int, remark string, MbRequestCount, MbHitCount, WnHitCount, MpRequestCount, MpHitCount, GwRequestCount, GwHitCount, FqRequestCount, FqHitCount int64) error {
+	field, err := GetApplyHourListCache(ctx, enID)
+	if err != nil {
+		return errors.Wrap(err, "redis get wrong")
+	}
+	if field == nil {
+		newField := &ApplyHourListField{
+			EnID:           enID,
+			MbRequestCount: MbRequestCount,
+			MbHitCount:     MbHitCount,
+			WnHitCount:     WnHitCount,
+			MpRequestCount: MpRequestCount,
+			MpHitCount:     MpHitCount,
+			GwRequestCount: GwRequestCount,
+			GwHitCount:     GwHitCount,
+			FqRequestCount: FqRequestCount,
+			FqHitCount:     FqHitCount,
+			Remark:         remark,
+		}
+		return SetApplyHourListCache(ctx, enID, newField)
+	} else {
+		field.MbRequestCount += MbRequestCount
+		field.MbHitCount += MbHitCount
+		field.WnHitCount += WnHitCount
+		field.MpRequestCount += MpRequestCount
+		field.MpHitCount += MpHitCount
+		field.GwRequestCount += GwRequestCount
+		field.GwHitCount += GwHitCount
+		field.FqRequestCount += FqRequestCount
+		field.FqHitCount += FqHitCount
+		return SetApplyHourListCache(ctx, enID, field)
+	}
 }

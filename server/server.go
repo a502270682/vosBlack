@@ -40,7 +40,7 @@ func NewServer(ctx context.Context) *Server {
 	s.Flags = []cli.Flag{cli.StringFlag{Name: "c", Usage: "Configuration file"}}
 	s.Action = func(c *cli.Context) error {
 		if c.GlobalString("c") == "" {
-			return errors.New("usage: my_go -c configfilepath")
+			return errors.New("usage: vos_black -c configfilepath")
 		}
 
 		log.Info(ctx, "start read config: ", c.GlobalString("c"))

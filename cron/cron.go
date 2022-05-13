@@ -1,10 +1,15 @@
 package cron
 
 import (
+	"context"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
+	"gorm.io/gorm"
 	"time"
+	"vosBlack/adapter/log"
+	"vosBlack/adapter/logic"
+	"vosBlack/model"
 )
 
 var cronCtl Ctl
@@ -22,18 +27,70 @@ type EnterpriseApplyHourListJob struct {
 }
 
 func (s *EnterpriseApplyHourListJob) Run() {
-	// to something
-
+	// do something
+	ctx := context.Background()
+	enterprises, err := model.GetInitEnterpriseInfoImpl().GetAllActiveEnterprise(ctx)
+	if err != nil {
+		log.Warnf(ctx, "fail to get active enterprises, err:%+v", err)
+		return
+	}
+	now := time.Now()
+	success := 0
+	var failEid []int
+	for _, enterprise := range enterprises {
+		field, err := logic.GetApplyHourListCache(ctx, enterprise.NID)
+		if err != nil || field == nil {
+			continue
+		}
+		eID := enterprise.NID
+		err = model.GetApplyHourListImpl().GetDBForTransaction().Transaction(func(tx *gorm.DB) error {
+			entity := &model.EnterpriseApplyHourList{
+				EnID:           eID,
+				DayReport:      now,
+				RepYear:        now.Year(),
+				RepMonth:       int(now.Month()),
+				RepDay:         now.Day(),
+				RepHour:        now.Hour(),
+				MbRequestCount: field.MbRequestCount,
+				MbHitCount:     field.MbHitCount,
+				WnHitCount:     field.WnHitCount,
+				MpRequestCount: field.MpRequestCount,
+				MpHitCount:     field.MpHitCount,
+				GwRequestCount: field.GwRequestCount,
+				GwHitCount:     field.GwHitCount,
+				FqRequestCount: field.FqRequestCount,
+				FqHitCount:     field.FqHitCount,
+				JoinDt:         now,
+				Remark:         field.Remark,
+			}
+			err = tx.Table("t_enterprise_applyhourlist").Create(entity).Error
+			if err != nil {
+				return errors.Wrap(err, "upsert applyhourlist failed")
+			}
+			err = logic.DeleteApplyHourListCache(ctx, eID)
+			if err != nil {
+				return errors.Wrap(err, "fail to DeleteApplyHourListCache")
+			}
+			return nil
+		})
+		if err != nil {
+			failEid = append(failEid, eID)
+			log.Warnf(ctx, "fail to create applyhourlist, enterprise_id:%d, err:%+v", eID, err)
+			continue
+		}
+		success++
+	}
+	log.Infof(ctx, "[applyhourlistJob] time:%+v success:%d failEid:%+v", success, failEid)
 }
 
 func StartCron() {
 	if cronCtl.C != nil {
 		ctl := cronCtl.C
 		schoolJob := EnterpriseApplyHourListJob{
-			JobName: "schoolJob",
+			JobName: "enterprise_apply_hour_list_job",
 		}
-		// every 1:00 am
-		_, err := ctl.AddJob("0 0/1 * * * *", &schoolJob)
+		// every 1 hour
+		_, err := ctl.AddJob("0 0 0/1 * * *", &schoolJob)
 		if err != nil {
 			panic(errors.Wrap(err, fmt.Sprintf("failed to start %s", schoolJob.JobName)))
 		}
