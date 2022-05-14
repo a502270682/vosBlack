@@ -6,15 +6,6 @@ import (
 	"time"
 )
 
-type IStatus int
-
-const (
-	IStatusActive IStatus = 1
-	IStatusStop   IStatus = 0
-	IStatusPause  IStatus = 9
-	IStatusDelete IStatus = -1
-)
-
 type EnterpriseInfo struct {
 	NID           int       `json:"nID" gorm:"column:nID"`
 	EnName        string    `json:"en_name" gorm:"en_name"`
@@ -46,6 +37,21 @@ type EnterpriseInfoImpl struct {
 	DB *gorm.DB
 }
 
+func InitEnterpriseInfoImplRepo(d *gorm.DB) {
+	enterpriseInfoImpl = &EnterpriseInfoImpl{
+		DB: d,
+	}
+}
+
+func GetEnterpriseInfoImpl() EnterpriseInfoRepo {
+	return enterpriseInfoImpl
+}
+
+type EnterpriseInfoRepo interface {
+	GetByEnID(ctx context.Context, id int) (*EnterpriseInfo, error)
+	GetAllActiveEnterprise(ctx context.Context) ([]*EnterpriseInfo, error)
+}
+
 func (e *EnterpriseInfoImpl) GetAllActiveEnterprise(ctx context.Context) ([]*EnterpriseInfo, error) {
 	var res []*EnterpriseInfo
 	err := e.DB.WithContext(ctx).Where("i_status = ?", IStatusActive).Find(&res).Error
@@ -62,19 +68,4 @@ func (e *EnterpriseInfoImpl) GetByEnID(ctx context.Context, id int) (*Enterprise
 		return nil, err
 	}
 	return res, nil
-}
-
-func InitEnterpriseInfoImplRepo(d *gorm.DB) {
-	enterpriseInfoImpl = &EnterpriseInfoImpl{
-		DB: d,
-	}
-}
-
-func GetInitEnterpriseInfoImpl() EnterpriseInfoRepo {
-	return enterpriseInfoImpl
-}
-
-type EnterpriseInfoRepo interface {
-	GetByEnID(ctx context.Context, id int) (*EnterpriseInfo, error)
-	GetAllActiveEnterprise(ctx context.Context) ([]*EnterpriseInfo, error)
 }

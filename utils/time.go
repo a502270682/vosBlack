@@ -1,5 +1,15 @@
 package utils
 
+import (
+	"strconv"
+	"time"
+)
+
+func GetLastNDay0TimeStamp(n int64) string {
+	t := time.Now().Add(-time.Hour * 24 * time.Duration(n))
+	return strconv.FormatInt(time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.Local).Unix(), 10)
+}
+
 /*
 	t, _ := time.ParseInLocation("2006-01-02 15:04:05", "2016-06-13 15:34:39", time.Local)
 	// 整点（向下取整）
