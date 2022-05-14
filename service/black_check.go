@@ -75,6 +75,7 @@ func CommonCheck(ctx context.Context, callee string, enID, ipID int) common.Resp
 			}
 		}
 	}
+	// 判断靓号
 	if blackRule.PatternLevel != -1 {
 		mobilePatternList, err := model.GetMobilePatternImpl().GetListByMbLevel(ctx, blackRule.PatternLevel)
 		if err != nil {
@@ -87,6 +88,7 @@ func CommonCheck(ctx context.Context, callee string, enID, ipID int) common.Resp
 			}
 		}
 	}
+	// 判断本地黑名单
 	if blackRule.BlacknumLevel != -1 {
 		mobile, err := model.GetMobileBlackApi().GetOne(ctx, prefix, callee)
 		if err != nil && err != gorm.ErrRecordNotFound {
