@@ -24,3 +24,9 @@ func GetLastNDay0TimeStamp(n int64) string {
 	t2, _ := time.ParseInLocation("2006-01-02 15:04:05", t.Format("2006-01-02 15:00:00"), time.Local)
 	fmt.Println(t2)
 */
+
+func GetCurHourAndMinute() (hour, minute int) {
+	t := time.Now()
+	return t.Truncate(1 * time.Hour).Hour(), t.Truncate(1 * time.Minute).Minute()
+
+}

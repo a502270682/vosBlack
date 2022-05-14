@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"context"
+	"gorm.io/gorm"
+	"time"
+)
 
 // 企业IP表
 type EnterpriseIplist struct {
@@ -24,4 +28,30 @@ type EnterpriseIplist struct {
 
 func (EnterpriseIplist) TableName() string {
 	return "t_enterprise_iplist"
+}
+
+var enterpriseIplistImpl *EnterpriseIplistImpl
+
+type EnterpriseIplistImpl struct {
+	DB *gorm.DB
+}
+
+func InitEnterpriseIplistRepo(d *gorm.DB) {
+	enterpriseIplistImpl = &EnterpriseIplistImpl{
+		DB: d,
+	}
+}
+
+type EnterpriseIplistRepo interface {
+	GetOneByIP(ctx context.Context, ip string) (*EnterpriseIplist, error)
+}
+
+func GetEnterpriseIplistImpl() EnterpriseIplistRepo {
+	return enterpriseIplistImpl
+}
+
+func (e *EnterpriseIplistImpl) GetOneByIP(ctx context.Context, ip string) (*EnterpriseIplist, error) {
+	res := &EnterpriseIplist{}
+	err := e.DB.WithContext(ctx).Where("ip_all = ?", ip).First(res).Error
+	return res, err
 }

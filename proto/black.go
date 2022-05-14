@@ -7,8 +7,9 @@ type BlackScreeningReq struct {
 }
 
 type BlackScreeningRsp struct {
+	Code   int    `json:"code"`
 	CallID string `json:"callId"`
-	ForbID int    `json:"forbid"`
+	ForbID string `json:"forbid"`
 	Status int    `json:"status"`
 }
 
@@ -21,9 +22,11 @@ type BlackCheckReq struct {
 }
 
 type BlackCheckRsp struct {
+	Code           int    `json:"code"`
+	Memo           string `json:"memo"`
 	RewriteE164Rsp struct {
 		Status     int    `json:"status"`
-		CallID     int    `json:"callId"`
+		CallID     string `json:"callId"`
 		CallerE164 string `json:"callerE164"`
 		CalleeE164 string `json:"calleeE164"`
 	} `json:"RewriteE164Rsp"`
@@ -38,16 +41,22 @@ type BlackDongYunReq struct {
 }
 
 type BlackDongYunRsp struct {
-	Code          int                  `json:"code"`          // 响应状态
-	Msg           string               `json:"msg"`           // 响应描述,success:成功 ,fail:失败
-	CallID        string               `json:"callId"`        // 通话ID
-	TransactionID string               `json:"transactionId"` // 主叫号码
-	List          []BlackDongYunDetail `json:"list"`          // 响应对象数组
-	Status        int                  `json:"status"`        //
+	Code          int                   `json:"code"`          // 响应状态
+	Msg           string                `json:"msg"`           // 响应描述,success:成功 ,fail:失败
+	CallID        string                `json:"callId"`        // 通话ID
+	TransactionID string                `json:"transactionId"` // 主叫号码
+	List          []*BlackDongYunDetail `json:"list"`          // 响应对象数组
+	Status        int                   `json:"status"`        //
 }
 
 type BlackDongYunDetail struct {
 	Mobile string `json:"mobile"` // 被叫号码
-	Forbid string `json:"forbid"` // 0是正常号码 1是敏感号码 2是超频号码
+	Forbid int    `json:"forbid"` // 0是正常号码 1是敏感号码 2是超频号码
 	Msg    string `json:"msg"`
+}
+
+type CommonReq struct {
+	CallID string `json:"callId"` // 呼叫唯一标识， 必填，必须唯一
+	Caller string `json:"caller"` // 主叫号码， 必填，不得低于3位
+	Callee string `json:"callee"` // 被叫号码， 必填，用半角逗号(,)隔开的号码清单
 }

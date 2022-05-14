@@ -1,5 +1,10 @@
 package model
 
+import (
+	"context"
+	"gorm.io/gorm"
+)
+
 // EnterpriseBlacklist 企业的黑名单规则设置表
 type EnterpriseBlacklist struct {
 	NID           int    `json:"nid,omitempty" gorm:"column:nID"`
@@ -20,4 +25,30 @@ type EnterpriseBlacklist struct {
 
 func (EnterpriseBlacklist) TableName() string {
 	return "t_enterprise_blacklist"
+}
+
+var enterpriseBlacklistImpl *EnterpriseBlacklistImpl
+
+type EnterpriseBlacklistImpl struct {
+	DB *gorm.DB
+}
+
+type EnterpriseBlacklistRepo interface {
+	GetEnterpriseBlacklistByIPAndQianzhui(ctx context.Context, ipID int, prefix string) (*EnterpriseBlacklist, error)
+}
+
+func InitEnterpriseBlacklistRepo(d *gorm.DB) {
+	enterpriseBlacklistImpl = &EnterpriseBlacklistImpl{
+		DB: d,
+	}
+}
+
+func GetEnterpriseBlacklistImpl() EnterpriseBlacklistRepo {
+	return enterpriseBlacklistImpl
+}
+
+func (e *EnterpriseBlacklistImpl) GetEnterpriseBlacklistByIPAndQianzhui(ctx context.Context, ipID int, prefix string) (*EnterpriseBlacklist, error) {
+	var res *EnterpriseBlacklist
+	err := e.DB.WithContext(ctx).Where("en_ip_id = ?", ipID).Where("qianzhui = ?", prefix).First(res).Error
+	return res, err
 }

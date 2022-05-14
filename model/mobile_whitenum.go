@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"context"
+	"gorm.io/gorm"
+	"time"
+)
 
 // MobileWhitenum 每个企业自己的白名单号码
 type MobileWhitenum struct {
@@ -16,4 +20,31 @@ type MobileWhitenum struct {
 
 func (MobileWhitenum) TableName() string {
 	return "mobile_whitenum"
+}
+
+type MobileWhitenumImpl struct {
+	DB *gorm.DB
+}
+
+var mobileWhitenumImpl *MobileWhitenumImpl
+
+type MobileWhitenumRepo interface {
+	GetByWhiteNum(ctx context.Context, enID int, whiteNum string) (*MobileWhitenum, error)
+}
+
+func InitMobileWhitenumRepo(d *gorm.DB) {
+	mobileWhitenumImpl = &MobileWhitenumImpl{
+		DB: d,
+	}
+}
+
+func GetMobileWhitenumImpl() MobileWhitenumRepo {
+	return mobileWhitenumImpl
+}
+
+func (m *MobileWhitenumImpl) GetByWhiteNum(ctx context.Context, enID int, whiteNum string) (*MobileWhitenum, error) {
+	res := &MobileWhitenum{}
+	err := m.DB.WithContext(ctx).Where("en_id = ?", enID).
+		Where("whitenum = ?", whiteNum).First(res).Error
+	return res, err
 }

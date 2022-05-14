@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"context"
+	"gorm.io/gorm"
+	"time"
+)
 
 type MobilePattern struct {
 	NID            int       `json:"nid,omitempty" gorm:"column:nID"`
@@ -18,4 +22,28 @@ type MobilePattern struct {
 	IStatus        int       `json:"i_status" gorm:"column:i_status"` // 状态，0停用，1启动，-1 删除
 	JoinDt         time.Time `json:"join_dt" gorm:"column:join_dt"`
 	Remark         string    `json:"remark" gorm:"remark"` // 备注
+}
+
+func (MobilePattern) TableName() string {
+	return "mobile_pattern"
+}
+
+type MobilePatternImpl struct {
+	DB *gorm.DB
+}
+
+var mobilePatternImpl *MobilePatternImpl
+
+type MobilePatternRepo interface {
+	GetListByMbLevel(ctx context.Context, mbLevel int) ([]*MobilePattern, error)
+}
+
+func GetMobilePatternImpl() MobilePatternRepo {
+	return mobilePatternImpl
+}
+
+func (m *MobilePatternImpl) GetListByMbLevel(ctx context.Context, mbLevel int) ([]*MobilePattern, error) {
+	var res []*MobilePattern
+	err := m.DB.WithContext(ctx).Where("mb_level <= ?", mbLevel).Find(&res).Error
+	return res, err
 }

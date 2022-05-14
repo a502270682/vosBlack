@@ -37,6 +37,7 @@ type MobileBlackRepo interface {
 	Save(ctx context.Context, black *MobileBlack, prefix string) error
 	Del(ctx context.Context, nID int, prefix string) error
 	GetListByCondition(ctx context.Context, query MobileBlackQueryCondition) ([]*MobileBlack, int64, error)
+	GetOne(ctx context.Context, prefix string, mobileAll string) (*MobileBlack, error)
 }
 
 func InitAMobileBlackRepo(d *gorm.DB) {
@@ -77,4 +78,11 @@ func (m *MobileBlackImpl) GetListByCondition(ctx context.Context, query MobileBl
 	}
 	return res, total, nil
 
+}
+
+func (m *MobileBlackImpl) GetOne(ctx context.Context, prefix string, mobileAll string) (*MobileBlack, error) {
+	tableName := fmt.Sprintf("mobile_black_%s", prefix)
+	var res *MobileBlack
+	err := m.DB.WithContext(ctx).Table(tableName).Where("mobile_all = ?", mobileAll).Find(&res).Error
+	return res, err
 }

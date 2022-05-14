@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"context"
+	"gorm.io/gorm"
+	"time"
+)
 
 // EnterpriseCalltimelist 呼叫时段
 type EnterpriseCalltimelist struct {
@@ -18,4 +22,27 @@ type EnterpriseCalltimelist struct {
 
 func (EnterpriseCalltimelist) TableName() string {
 	return "t_enterprise_calltimelist"
+}
+
+var enterpriseCalltimelistImpl *EnterpriseCalltimelistImpl
+
+type EnterpriseCalltimelistImpl struct {
+	DB *gorm.DB
+}
+
+type EnterpriseCalltimelistRepo interface {
+	GetByEnID(ctx context.Context, enID int, blackID int) (*EnterpriseCalltimelist, error)
+}
+
+func GetEnterpriseCalltimelistImpl() EnterpriseCalltimelistRepo {
+	return enterpriseCalltimelistImpl
+}
+
+func (e *EnterpriseCalltimelistImpl) GetByEnID(ctx context.Context, enID int, blackID int) (*EnterpriseCalltimelist, error) {
+	res := &EnterpriseCalltimelist{}
+	err := e.DB.WithContext(ctx).
+		Where("en_id = ?", enID).
+		Where("black_id = ?", blackID).
+		First(res).Error
+	return res, err
 }

@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"context"
+	"gorm.io/gorm"
+	"time"
+)
 
 // EnterpriseFeeList 企业账号费用情况
 type EnterpriseFeeList struct {
@@ -15,4 +19,30 @@ type EnterpriseFeeList struct {
 
 func (EnterpriseFeeList) TableName() string {
 	return "t_enterprise_feelist"
+}
+
+var enterpriseFeeListImpl *EnterpriseFeeListImpl
+
+type EnterpriseFeeListImpl struct {
+	DB *gorm.DB
+}
+
+type EnterpriseFeeListRepo interface {
+	GetOneByEnID(ctx context.Context, enID int) (*EnterpriseFeeList, error)
+}
+
+func InitEnterpriseFeeListRepo(d *gorm.DB) {
+	enterpriseFeeListImpl = &EnterpriseFeeListImpl{
+		DB: d,
+	}
+}
+
+func GetEnterpriseFeeListImpl() EnterpriseFeeListRepo {
+	return enterpriseFeeListImpl
+}
+
+func (e *EnterpriseFeeListImpl) GetOneByEnID(ctx context.Context, enID int) (*EnterpriseFeeList, error) {
+	res := &EnterpriseFeeList{}
+	err := e.DB.WithContext(ctx).Where("en_id = ?", enID).First(res).Error
+	return res, err
 }

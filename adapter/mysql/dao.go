@@ -24,6 +24,11 @@ func InitEntityDao(d *gorm.DB) {
 	model.InitEnterpriseInfoImplRepo(d)
 	model.InitGateWayApplyHourListRepo(d)
 	model.InitSysGatewayImplRepo(d)
+	model.InitEnterpriseUserlistRepo(d)
+	model.InitEnterpriseIplistRepo(d)
+	model.InitEnterpriseFeeListRepo(d)
+	model.InitMobileWhitenumRepo(d)
+	model.InitEnterpriseBlacklistRepo(d)
 }
 
 func makeDsn(user, password, host, db string, port int) string {

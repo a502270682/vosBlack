@@ -7,7 +7,7 @@ import (
 )
 
 type SysGatewayInfo struct {
-	NID         int       `json:"nid,omitempty" gorm:"column:nID"`
+	NID         int       `json:"nid,omitempty" gorm:"column:nid"`
 	GwName      string    `json:"gw_name" gorm:"column:gw_name"`           // 网关名称
 	GwUrl       string    `json:"gw_url" gorm:"column:gw_url"`             //网关调用地址
 	GwType      GwType    `json:"gw_type" gorm:"column:gw_type"`           // 网关类型
@@ -17,6 +17,9 @@ type SysGatewayInfo struct {
 	MbLevel     int       `json:"mb_level" gorm:"mb_level"`                // 黑名单等级
 	JoinDt      time.Time `json:"join_dt" gorm:"join_dt"`                  // 添加时间
 	Remark      string    `json:"remark" gorm:"remark"`                    // 备注
+	GwEnID      string    `json:"gw_enid" gorm:"gw_enid"`                  // 第三方接口的企业id
+	GwPass      string    `json:"gw_pass" gorm:"gw_pass"`                  // 第三方接口的企业密码
+	GwAk        string    `json:"gw_ak" gorm:"gw_ak"`
 }
 
 func (SysGatewayInfo) TableName() string {
