@@ -60,6 +60,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 			return common.SystemInternalError
 		}
 		if isExist {
+			logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 0, 0, 1, 0, 0, 0, 0, 0, 0)
 			return common.StatusOK
 		}
 	}
@@ -92,6 +93,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 				return common.PrettyNumber
 			}
 		}
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 1, 0, 0, 0, 0, 0)
 	}
 	// 判断本地黑名单
 	if blackRule.BlacknumLevel != -1 {
@@ -103,6 +105,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 			logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 1, 0, 0, 0, 0, 0, 0, 0)
 			return common.BlackMobile
 		}
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
 	}
 	if blackRule.IsFrequency != 1 {
 		if blackRule.CallCycle != -1 && blackRule.CallCount > 0 {
@@ -115,6 +118,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 				logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 0, 0, 1, 1)
 				return common.OutOfFrequency
 			}
+			logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 0, 0, 1, 0)
 		}
 	}
 	if blackRule.GatewayLevel != -1 {
