@@ -2,9 +2,13 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"gorm.io/gorm"
 	"regexp"
 	"strings"
+	"time"
+	"vosBlack/adapter/http"
+	"vosBlack/adapter/logic"
 	"vosBlack/common"
 	"vosBlack/model"
 	"vosBlack/utils"
@@ -34,12 +38,12 @@ func IsWhiteNum(ctx context.Context, realCallee string, enID int) (bool, error) 
 	return false, nil
 }
 
-func CommonCheck(ctx context.Context, callee string, enID, ipID int) common.RespStatus {
+func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID, caller, callee string) common.RespStatus {
 	var prefix string
-	if strings.HasPrefix(callee, "0") {
+	if strings.HasPrefix(realCallee, "0") {
 		prefix = "0"
 	} else {
-		prefix = callee[:3]
+		prefix = realCallee[:3]
 	}
 	// 根据前缀和ip获取黑名单规则
 	blackRule, err := model.GetEnterpriseBlacklistImpl().GetEnterpriseBlacklistByIPAndQianzhui(ctx, ipID, prefix)
@@ -51,7 +55,7 @@ func CommonCheck(ctx context.Context, callee string, enID, ipID int) common.Resp
 	}
 	// 判断白名单
 	if blackRule.IsWhitenum == 1 {
-		isExist, err := IsWhiteNum(ctx, callee, enID)
+		isExist, err := IsWhiteNum(ctx, realCallee, enID)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return common.SystemInternalError
 		}
@@ -83,26 +87,137 @@ func CommonCheck(ctx context.Context, callee string, enID, ipID int) common.Resp
 		}
 		for _, value := range mobilePatternList {
 			reg := regexp.MustCompile(value.Pattern)
-			if reg.Match([]byte(callee)) {
+			if reg.Match([]byte(realCallee)) {
+				logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 1, 1, 0, 0, 0, 0)
 				return common.PrettyNumber
 			}
 		}
 	}
 	// 判断本地黑名单
 	if blackRule.BlacknumLevel != -1 {
-		mobile, err := model.GetMobileBlackApi().GetOne(ctx, prefix, callee)
+		mobile, err := model.GetMobileBlackApi().GetOne(ctx, prefix, realCallee)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return common.SystemInternalError
 		}
 		if mobile != nil {
+			logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 1, 0, 0, 0, 0, 0, 0, 0)
 			return common.BlackMobile
 		}
 	}
 	if blackRule.IsFrequency != 1 {
-		//TODO 呼叫频率判断
+		if blackRule.CallCycle != -1 && blackRule.CallCount > 0 {
+			startDate := time.Now().AddDate(0, 0, -blackRule.CallCycle).Format("20060102")
+			frequencyCount, err := logic.GetEnterpriseFqFromStartDay(ctx, enID, startDate)
+			if err != nil {
+				return common.SystemInternalError
+			}
+			if frequencyCount+1 > int64(blackRule.CallCount) {
+				logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 0, 0, 1, 1)
+				return common.OutOfFrequency
+			}
+		}
 	}
 	if blackRule.GatewayLevel != -1 {
 		//TODO 根据Gateway 调用第三方接口
+		sysGateway, err := model.GetSysGatewayImpl().GetByEnID(ctx, blackRule.GatewayLevel)
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return common.NotFound
+			}
+			return common.SystemInternalError
+		}
+		isBlack, err := requestSysGateway(ctx, enID, sysGateway.GwType, callID, caller, callee, sysGateway.GwAk, sysGateway.GwPass)
+		if err != nil {
+			return common.SystemInternalError
+		}
+		if isBlack {
+			// 插入数据库
+			err = model.GetMobileBlackApi().Save(ctx, &model.MobileBlack{
+				Mobile:    realCallee[3:],
+				MobileAll: realCallee,
+				MbLevel:   "1",
+				GwId:      sysGateway.NID,
+				EnID:      enID,
+			}, prefix)
+			if err != nil {
+				return common.SystemInternalError
+			}
+			return common.BlackMobile
+		}
 	}
 	return common.StatusOK
+}
+
+func requestSysGateway(ctx context.Context, enID int, gwType model.GwType, callID, caller, callee string, ak, pass string) (bool, error) {
+	var isBlack bool
+	var err error
+	switch gwType {
+	case 1:
+		isBlack, err = vosRewrite(ctx, enID, callID, caller, callee)
+	case 2:
+		isBlack, err = vosYunXuntong(ctx, enID, callID, caller, callee)
+	case 3:
+		isBlack, err = dongYun(ctx, enID, callID, caller, callee, ak, pass)
+	}
+	return isBlack, err
+}
+
+func dongYun(ctx context.Context, enID int, callID string, caller string, callee, ak, pass string) (bool, error) {
+	str := strings.ToLower(fmt.Sprintf("%s%s%s", ak, callID, pass))
+	sign := utils.Encrypt(str)
+	req := &http.SysGatewayDongYun{
+		AK:     ak,
+		CallID: callID,
+		Caller: caller,
+		Callee: callee,
+		Sign:   sign,
+	}
+	res, err := req.Request(ctx)
+	if err != nil {
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
+		return false, err
+	}
+	if res.List[0].Forbid == 0 {
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
+		return true, nil
+	}
+	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
+	return false, nil
+}
+
+func vosYunXuntong(ctx context.Context, enID int, callID string, caller string, callee string) (bool, error) {
+	req := &http.HuaXinBlackCheck{
+		CallID: callID,
+		Caller: caller,
+		Callee: callee,
+	}
+	res, err := req.Request(ctx)
+	if err != nil {
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
+		return false, err
+	}
+	if res.Status != 2000 {
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
+		return true, nil
+	}
+	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
+	return false, nil
+}
+
+func vosRewrite(ctx context.Context, enID int, callID, caller, callee string) (bool, error) {
+	req := &http.HuaXinBlackRewrite{}
+	req.RewriteE164Req.CallID = callID
+	req.RewriteE164Req.CallerE164 = caller
+	req.RewriteE164Req.CalleeE164 = callee
+	res, err := req.Request(ctx)
+	if err != nil {
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
+		return false, err
+	}
+	if res.RewriteE164Rsp.Status != 2000 {
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
+		return true, nil
+	}
+	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
+	return false, nil
 }
