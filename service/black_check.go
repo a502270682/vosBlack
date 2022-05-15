@@ -139,7 +139,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 			err = model.GetMobileBlackApi().Save(ctx, &model.MobileBlack{
 				Mobile:    realCallee[3:],
 				MobileAll: realCallee,
-				MbLevel:   "1",
+				MbLevel:   0,
 				GwId:      sysGateway.NID,
 				EnID:      enID,
 			}, prefix)
@@ -163,6 +163,11 @@ func requestSysGateway(ctx context.Context, enID int, gwType model.GwType, callI
 	case 3:
 		isBlack, err = dongYun(ctx, enID, callID, caller, callee, ak, pass)
 	}
+	if err != nil || !isBlack {
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
+	} else {
+		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
+	}
 	return isBlack, err
 }
 
@@ -178,14 +183,11 @@ func dongYun(ctx context.Context, enID int, callID string, caller string, callee
 	}
 	res, err := req.Request(ctx)
 	if err != nil {
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
 		return false, err
 	}
 	if res.List[0].Forbid == 0 {
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
 		return true, nil
 	}
-	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
 	return false, nil
 }
 
@@ -197,14 +199,11 @@ func vosYunXuntong(ctx context.Context, enID int, callID string, caller string, 
 	}
 	res, err := req.Request(ctx)
 	if err != nil {
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
 		return false, err
 	}
 	if res.Status != 2000 {
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
 		return true, nil
 	}
-	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
 	return false, nil
 }
 
@@ -215,13 +214,10 @@ func vosRewrite(ctx context.Context, enID int, callID, caller, callee string) (b
 	req.RewriteE164Req.CalleeE164 = callee
 	res, err := req.Request(ctx)
 	if err != nil {
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
 		return false, err
 	}
 	if res.RewriteE164Rsp.Status != 2000 {
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
 		return true, nil
 	}
-	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
 	return false, nil
 }
