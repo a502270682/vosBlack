@@ -21,7 +21,7 @@ type EnterpriseIplist struct {
 	Ip_7      int       `json:"ip_7" gorm:"column:ip_7"`
 	Ip_8      int       `json:"ip_8" gorm:"column:ip_8"`
 	Inputtype int       `json:"inputtype" gorm:"column:inputtype"`
-	IStatus   int       `json:"i_status" gorm:"column:i_status"`
+	IStatus   IStatus   `json:"i_status" gorm:"column:i_status"`
 	JoinDt    time.Time `json:"join_dt" gorm:"column:join_dt"`
 	Remark    string    `json:"remark" gorm:"remark"`
 }
