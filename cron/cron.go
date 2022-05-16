@@ -80,7 +80,7 @@ func (s *EnterpriseApplyHourListJob) Run() {
 		}
 		success++
 	}
-	log.Infof(ctx, "[applyhourlistJob] time:%+v success:%d failEid:%+v", success, failEid)
+	log.Infof(ctx, "[applyhourlistJob] time:%+v success:%d failEid:%+v", time.Now(), success, failEid)
 }
 
 type GwApplyHourListJob struct {
@@ -134,7 +134,7 @@ func (s *GwApplyHourListJob) Run() {
 		}
 		success++
 	}
-	log.Infof(ctx, "[gwapplyhourlistJob] time:%+v success:%d failId:%+v", success, failId)
+	log.Infof(ctx, "[gwapplyhourlistJob] time:%+v success:%d failId:%+v", time.Now(), success, failId)
 }
 
 func StartCron() {
