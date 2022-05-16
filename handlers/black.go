@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"vosBlack/adapter/logic"
 	"vosBlack/common"
 	"vosBlack/proto"
 	"vosBlack/service"
@@ -38,6 +39,7 @@ func BlackCheckHandler(c *gin.Context) {
 	// 解析参数
 	param, err := parseParam(companyIPInfo.Inputtype, c)
 	if err != nil {
+		logic.UpsertEnterpriseApplyHourList(ctx, companyIPInfo.EnID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
 		if err == common.SignError {
 			Error(c, common.SignErrorResp, common.NotFound, companyIPInfo.Inputtype)
 		} else if err == common.ReqParamError {
@@ -97,7 +99,7 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 			matchs := utils.FindStringSubmatch(num)
 			// 获取真实的手机号
 			realCallee := matchs[5]
-			respStatus := service.CommonCheck(ctx, realCallee, enID, ipID)
+			respStatus := service.CommonCheck(ctx, realCallee, enID, ipID, req.CallID, req.Caller, req.Callee)
 			if respStatus == common.StatusOK {
 				syncList.AppendToArray(&proto.BlackDongYunDetail{
 					Mobile: realCallee,
@@ -134,7 +136,7 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 
 func standloneCheck(c *gin.Context, req *proto.CommonReq, inputType int, ipID int, enID int) {
 	ctx := c.Request.Context()
-	respStatus := service.CommonCheck(ctx, req.Callee, enID, ipID)
+	respStatus := service.CommonCheck(ctx, req.Callee, enID, ipID, req.CallID, req.Caller, req.Callee)
 	if respStatus != common.StatusOK {
 		Error(c, common.RespError, respStatus, inputType)
 		return
