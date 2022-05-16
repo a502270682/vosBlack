@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"vosBlack/adapter/log"
 	"vosBlack/adapter/logic"
 	"vosBlack/common"
 	"vosBlack/proto"
@@ -39,7 +40,10 @@ func BlackCheckHandler(c *gin.Context) {
 	// 解析参数
 	param, err := parseParam(companyIPInfo.Inputtype, c)
 	if err != nil {
-		logic.UpsertEnterpriseApplyHourList(ctx, companyIPInfo.EnID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
+		err = logic.UpsertEnterpriseApplyHourList(ctx, companyIPInfo.EnID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
+		if err != nil {
+			log.Warnf(ctx, "UpsertEnterpriseApplyHourList fail, err:%+v", err)
+		}
 		if err == common.SignError {
 			Error(c, common.SignErrorResp, common.NotFound, companyIPInfo.Inputtype)
 		} else if err == common.ReqParamError {
@@ -61,7 +65,7 @@ func haveBalance(ctx context.Context, enID int) bool {
 	if err != nil {
 		return false
 	}
-	return feel.FeeIncome-feel.FeeIncome >= float64(0-feel.FeeCredit)
+	return feel.FeeIncome-feel.FeePayout >= float64(0-feel.FeeCredit)
 }
 
 func Check(c *gin.Context, req *proto.CommonReq, inputType, ipID, enID int) {

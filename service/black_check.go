@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 	"vosBlack/adapter/http"
+	"vosBlack/adapter/log"
 	"vosBlack/adapter/logic"
 	"vosBlack/common"
 	"vosBlack/model"
@@ -53,6 +54,14 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 		}
 		return common.SystemInternalError
 	}
+	var mbRequestCount, mbHitCount, wnHitCount, mpRequestCount, mpHitCount, gwRequestCount, gwHitCount, fqRequestCount, fqHitCount int64
+	defer func() {
+		mbRequestCount = 1
+		err = logic.UpsertEnterpriseApplyHourList(ctx, enID, "", mbRequestCount, mbHitCount, wnHitCount, mpRequestCount, mpHitCount, gwRequestCount, gwHitCount, fqRequestCount, fqHitCount)
+		if err != nil {
+			log.Warnf(ctx, "UpsertEnterpriseApplyHourList failed, err:%+v", err)
+		}
+	}()
 	// 判断白名单
 	if blackRule.IsWhitenum == 1 {
 		isExist, err := IsWhiteNum(ctx, realCallee, enID)
@@ -60,7 +69,8 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 			return common.SystemInternalError
 		}
 		if isExist {
-			logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 0, 0, 1, 0, 0, 0, 0, 0, 0)
+			wnHitCount = 1
+			//logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 1, 0, 0, 0, 0, 0, 0)
 			return common.StatusOK
 		}
 	}
@@ -86,14 +96,14 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 		if err != nil {
 			return common.SystemInternalError
 		}
+		mpRequestCount = 1
 		for _, value := range mobilePatternList {
 			reg := regexp.MustCompile(value.Pattern)
 			if reg.Match([]byte(realCallee)) {
-				logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 1, 1, 0, 0, 0, 0)
+				mpHitCount = 1
 				return common.PrettyNumber
 			}
 		}
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 1, 0, 0, 0, 0, 0)
 	}
 	// 判断本地黑名单
 	if blackRule.BlacknumLevel != -1 {
@@ -102,10 +112,9 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 			return common.SystemInternalError
 		}
 		if mobile != nil {
-			logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 1, 0, 0, 0, 0, 0, 0, 0)
+			mbHitCount = 1
 			return common.BlackMobile
 		}
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
 	}
 	if blackRule.IsFrequency != 1 {
 		if blackRule.CallCycle != -1 && blackRule.CallCount > 0 {
@@ -114,11 +123,11 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 			if err != nil {
 				return common.SystemInternalError
 			}
+			fqRequestCount = 1
 			if frequencyCount+1 > int64(blackRule.CallCount) {
-				logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 0, 0, 1, 1)
+				fqHitCount = 1
 				return common.OutOfFrequency
 			}
-			logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 0, 0, 1, 0)
 		}
 	}
 	if blackRule.GatewayLevel != -1 {
@@ -130,11 +139,13 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 			}
 			return common.SystemInternalError
 		}
+		gwRequestCount = 1
 		isBlack, err := requestSysGateway(ctx, enID, sysGateway.GwType, callID, caller, callee, sysGateway.GwAk, sysGateway.GwPass)
 		if err != nil {
 			return common.SystemInternalError
 		}
 		if isBlack {
+			gwHitCount = 1
 			// 插入数据库
 			err = model.GetMobileBlackApi().Save(ctx, &model.MobileBlack{
 				Mobile:    realCallee[3:],
@@ -163,11 +174,11 @@ func requestSysGateway(ctx context.Context, enID int, gwType model.GwType, callI
 	case 3:
 		isBlack, err = dongYun(ctx, enID, callID, caller, callee, ak, pass)
 	}
-	if err != nil || !isBlack {
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
-	} else {
-		logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
-	}
+	//if err != nil || !isBlack {
+	//	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
+	//} else {
+	//	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
+	//}
 	return isBlack, err
 }
 
