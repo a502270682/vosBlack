@@ -20,6 +20,17 @@ func enterpriseFqHashMapKey(enID int) string {
 	return fmt.Sprintf("vos_black_enterprise_frequency:%d", enID)
 }
 
+func GetEnterpriseFqCache(ctx context.Context, enID int, dayStamp string) (int64, error) {
+	count, err := redis.GetDefaultRedisClient().HGet(ctx, enterpriseFqHashMapKey(enID), dayStamp).Int64()
+	if err != nil {
+		if err == redis.ErrNil {
+			return 0, nil
+		}
+		return 0, errors.Wrap(err, fmt.Sprintf("enID(%d) get enterprise_fq_count failed", enID))
+	}
+	return count, nil
+}
+
 // 设置目标日期时间戳该企业请求次数
 func AddEnterpriseFqCache(ctx context.Context, enID int, dayStamp string, count int64) error {
 	res, err := GetEnterpriseFqCache(ctx, enID, dayStamp)
@@ -33,17 +44,6 @@ func AddEnterpriseFqCache(ctx context.Context, enID int, dayStamp string, count 
 	return nil
 }
 
-func GetEnterpriseFqCache(ctx context.Context, enID int, dayStamp string) (int64, error) {
-	count, err := redis.GetDefaultRedisClient().HGet(ctx, enterpriseFqHashMapKey(enID), dayStamp).Int64()
-	if err != nil {
-		if err == redis.ErrNil {
-			return 0, nil
-		}
-		return 0, errors.Wrap(err, fmt.Sprintf("enID(%d) get enterprise_fq_count failed", enID))
-	}
-	return count, nil
-}
-
 // 获取从目标日期时间戳开始记录的该企业请求次数
 func GetEnterpriseFqFromStartDay(ctx context.Context, enID int, startDayStamp string) (int64, error) {
 	m, err := redis.GetDefaultRedisClient().HGetAll(ctx, enterpriseFqHashMapKey(enID)).Result()
@@ -54,7 +54,7 @@ func GetEnterpriseFqFromStartDay(ctx context.Context, enID int, startDayStamp st
 		return 0, err
 	}
 	total := int64(0)
-	expireDay := utils.GetLastNDay0TimeStamp(config.GetConfig().FqCountExpireDay)
+	expireDay := utils.GetLastNDay0TimeStamp(config.GetConfig().FqCountSavedDay)
 	for day, count := range m {
 		c, _ := strconv.ParseInt(count, 10, 64)
 		if day >= startDayStamp {

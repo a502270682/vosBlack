@@ -7,12 +7,12 @@ import (
 )
 
 type Config struct {
-	Env              string      `mapstructure:"env"`
-	AppName          string      `mapstructure:"app_name"`
-	HTTPPort         string      `mapstructure:"http_port"`
-	Mysql            Mysql       `mapstructure:"mysql"`
-	Redis            RedisConfig `mapstructure:"redis"`
-	FqCountExpireDay int64       `mapstructure:"fq_count_expire_day"`
+	Env             string      `mapstructure:"env"`
+	AppName         string      `mapstructure:"app_name"`
+	HTTPPort        string      `mapstructure:"http_port"`
+	Mysql           Mysql       `mapstructure:"mysql"`
+	Redis           RedisConfig `mapstructure:"redis"`
+	FqCountSavedDay int64       `mapstructure:"fq_count_saved_day"`
 }
 
 // RedisConfig is the config for redis
@@ -53,4 +53,8 @@ func Load(path string) (*Config, error) {
 }
 func GetConfig() *Config {
 	return &gConfig
+}
+
+func SetConfigForTest(c Config) {
+	gConfig = c
 }
