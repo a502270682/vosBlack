@@ -174,11 +174,6 @@ func requestSysGateway(ctx context.Context, enID int, gwType model.GwType, callI
 	case 3:
 		isBlack, err = dongYun(ctx, enID, callID, caller, callee, ak, pass)
 	}
-	//if err != nil || !isBlack {
-	//	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 0, 0, 0)
-	//} else {
-	//	logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 0, 0, 0, 1, 1, 0, 0)
-	//}
 	return isBlack, err
 }
 

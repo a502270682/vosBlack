@@ -11,6 +11,7 @@ import (
 	"vosBlack/adapter/log"
 	"vosBlack/adapter/logic"
 	"vosBlack/common"
+	"vosBlack/model"
 	"vosBlack/proto"
 	"vosBlack/service"
 	"vosBlack/utils"
@@ -22,7 +23,8 @@ func BlackCheckHandler(c *gin.Context) {
 	ip := c.ClientIP()
 	// 根据ip获取企业信息
 	companyIPInfo, err := service.GetCompanyByIP(ctx, ip)
-	if err != nil {
+	// 检查企业实体是否存在和状态是否激活
+	if err != nil || (companyIPInfo != nil && companyIPInfo.IStatus != model.IStatusActive) {
 		c.JSON(http.StatusOK, struct {
 			Code   int
 			Status int
