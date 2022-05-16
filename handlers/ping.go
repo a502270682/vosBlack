@@ -7,6 +7,7 @@ import (
 )
 
 func PingHandler(ctx context.Context, req *proto.PingReq, rsp *proto.PingRsp) *error_code.ReplyError {
-	rsp.Success = "hello"
+	ip := getIP(ctx)
+	rsp.Success = ip
 	return nil
 }
