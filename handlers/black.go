@@ -17,10 +17,18 @@ import (
 	"vosBlack/utils"
 )
 
+func getClientIP(c *gin.Context) string {
+	ip := c.ClientIP()
+	if ip == "::1" {
+		return "127.0.0.1"
+	}
+	return ip
+}
+
 // 外部号码改写规则
 func BlackCheckHandler(c *gin.Context) {
 	ctx := c.Request.Context()
-	ip := c.ClientIP()
+	ip := getClientIP(c)
 	// 根据ip获取企业信息
 	companyIPInfo, err := service.GetCompanyByIP(ctx, ip)
 	// 检查企业实体是否存在和状态是否激活
@@ -142,7 +150,10 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 
 func standloneCheck(c *gin.Context, req *proto.CommonReq, inputType int, ipID int, enID int) {
 	ctx := c.Request.Context()
-	respStatus := service.CommonCheck(ctx, req.Callee, enID, ipID, req.CallID, req.Caller, req.Callee)
+	matchs := utils.FindStringSubmatch(req.Callee)
+	// 获取真实的手机号
+	realCallee := matchs[7]
+	respStatus := service.CommonCheck(ctx, realCallee, enID, ipID, req.CallID, req.Caller, req.Callee)
 	if respStatus != common.StatusOK {
 		Error(c, common.RespError, respStatus, inputType)
 		return

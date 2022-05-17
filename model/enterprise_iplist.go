@@ -8,7 +8,7 @@ import (
 
 // 企业IP表
 type EnterpriseIplist struct {
-	NID       int       `json:"nID" gorm:"column:nID"`
+	NID       int       `json:"nID" gorm:"column:nid"`
 	EnID      int       `json:"en_id" gorm:"column:en_id"`
 	IpType    int       `json:"ip_type" gorm:"column:ip_type"`
 	IpAll     string    `json:"ip_all" gorm:"ip_all"`

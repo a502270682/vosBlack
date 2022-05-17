@@ -7,7 +7,7 @@ import (
 
 // EnterpriseBlacklist 企业的黑名单规则设置表
 type EnterpriseBlacklist struct {
-	NID           int    `json:"nid,omitempty" gorm:"column:nID"`
+	NID           int    `json:"nid,omitempty" gorm:"column:nid"`
 	EnID          int    `json:"en_id,omitempty" gorm:"column:en_id"`         // 请求企业ID
 	EnIPID        int    `json:"en_ip_id" gorm:"column:en_ip_id"`             // 请求企业的IP的ID，0.0.0.0的代表全部
 	Qianzhui      string `json:"qianzhui" gorm:"column:qianzhui"`             // 号码前缀，ALL代表全部，先完全匹配，匹配不上的用ALL的设置
@@ -48,7 +48,7 @@ func GetEnterpriseBlacklistImpl() EnterpriseBlacklistRepo {
 }
 
 func (e *EnterpriseBlacklistImpl) GetEnterpriseBlacklistByIPAndQianzhui(ctx context.Context, ipID int, prefix string) (*EnterpriseBlacklist, error) {
-	var res *EnterpriseBlacklist
+	res := &EnterpriseBlacklist{}
 	err := e.DB.WithContext(ctx).Where("en_ip_id = ?", ipID).Where("qianzhui = ?", prefix).First(res).Error
 	return res, err
 }

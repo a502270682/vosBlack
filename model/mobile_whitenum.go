@@ -45,6 +45,6 @@ func GetMobileWhitenumImpl() MobileWhitenumRepo {
 func (m *MobileWhitenumImpl) GetByWhiteNum(ctx context.Context, enID int, whiteNum string) (*MobileWhitenum, error) {
 	res := &MobileWhitenum{}
 	err := m.DB.WithContext(ctx).Where("en_id = ?", enID).
-		Where("whitenum = ?", whiteNum).First(res).Error
+		Where("whitenum = ?", whiteNum).Where("i_status = 1").First(res).Error
 	return res, err
 }

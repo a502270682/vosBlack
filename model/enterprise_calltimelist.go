@@ -30,6 +30,12 @@ type EnterpriseCalltimelistImpl struct {
 	DB *gorm.DB
 }
 
+func InitEnterpriseCalltimelistRepo(db *gorm.DB) {
+	enterpriseCalltimelistImpl = &EnterpriseCalltimelistImpl{
+		DB: db,
+	}
+}
+
 type EnterpriseCalltimelistRepo interface {
 	GetByEnID(ctx context.Context, enID int, blackID int) (*EnterpriseCalltimelist, error)
 }

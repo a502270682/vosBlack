@@ -29,9 +29,13 @@ func GetEnterpriseFeelList(ctx context.Context, enID int) (*model.EnterpriseFeeL
 
 func IsWhiteNum(ctx context.Context, realCallee string, enID int) (bool, error) {
 	whiteNum, err := model.GetMobileWhitenumImpl().GetByWhiteNum(ctx, enID, realCallee)
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return false, nil
+		}
 		return false, err
 	}
+
 	// 在白名单内返回正常号码
 	if whiteNum != nil {
 		return true, nil
@@ -80,7 +84,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return common.SystemInternalError
 		}
-		if callTimeList != nil {
+		if err == nil && callTimeList != nil {
 			curHour, curMintue := utils.GetCurHourAndMinute()
 			if !(callTimeList.BeginHour <= curHour &&
 				curHour <= callTimeList.EndHour &&

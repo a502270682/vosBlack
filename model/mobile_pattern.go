@@ -34,6 +34,12 @@ type MobilePatternImpl struct {
 
 var mobilePatternImpl *MobilePatternImpl
 
+func InitMobilePatternRepo(db *gorm.DB) {
+	mobilePatternImpl = &MobilePatternImpl{
+		DB: db,
+	}
+}
+
 type MobilePatternRepo interface {
 	GetListByMbLevel(ctx context.Context, mbLevel int) ([]*MobilePattern, error)
 }
