@@ -115,7 +115,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return common.SystemInternalError
 		}
-		if mobile != nil {
+		if mobile != nil && mobile.MobileAll == realCallee {
 			mbHitCount = 1
 			return common.BlackMobile
 		}

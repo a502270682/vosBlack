@@ -82,7 +82,7 @@ func (m *MobileBlackImpl) GetListByCondition(ctx context.Context, query MobileBl
 
 func (m *MobileBlackImpl) GetOne(ctx context.Context, prefix string, mobileAll string) (*MobileBlack, error) {
 	tableName := fmt.Sprintf("mobile_black_%s", prefix)
-	var res *MobileBlack
+	res := &MobileBlack{}
 	err := m.DB.WithContext(ctx).Table(tableName).Where("mobile_all = ?", mobileAll).Find(&res).Error
 	return res, err
 }
