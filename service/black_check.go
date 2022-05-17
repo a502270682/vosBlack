@@ -111,7 +111,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 	}
 	// 判断本地黑名单
 	if blackRule.BlacknumLevel != -1 {
-		mobile, err := model.GetMobileBlackApi().GetOne(ctx, prefix, realCallee)
+		mobile, err := model.GetMobileBlackApi().GetOneByMobileAll(ctx, prefix, realCallee)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return common.SystemInternalError
 		}
@@ -151,7 +151,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 		if isBlack {
 			gwHitCount = 1
 			// 插入数据库
-			err = model.GetMobileBlackApi().Save(ctx, &model.MobileBlack{
+			err = model.GetMobileBlackApi().Insert(ctx, &model.MobileBlack{
 				Mobile:    realCallee[3:],
 				MobileAll: realCallee,
 				MbLevel:   0,

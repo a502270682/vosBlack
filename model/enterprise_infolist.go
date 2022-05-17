@@ -7,7 +7,7 @@ import (
 )
 
 type EnterpriseInfo struct {
-	NID           int       `json:"nID" gorm:"column:nID"`
+	NID           int       `json:"nid" gorm:"column:nid"`
 	EnName        string    `json:"en_name" gorm:"en_name"`
 	Licensenum    string    `json:"licensenum" gorm:"licensenum"`
 	EnKind        string    `json:"en_kind" gorm:"en_kind"`

@@ -8,7 +8,7 @@ import (
 
 // EnterpriseFeeList 企业账号费用情况
 type EnterpriseFeeList struct {
-	NID       int       `json:"nid,omitempty" gorm:"column:nID"`
+	NID       int       `json:"nid,omitempty" gorm:"column:nid"`
 	EnID      int       `json:"en_id,omitempty" gorm:"column:en_id"`
 	FeeRate   float64   `json:"fee_rate,omitempty" gorm:"column:fee_rate"`
 	FeeIncome float64   `json:"fee_income,omitempty" gorm:"column:fee_income"`

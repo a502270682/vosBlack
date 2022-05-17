@@ -7,7 +7,7 @@ import (
 )
 
 type EnterpriseApplyHourList struct {
-	NID            int       `json:"nID" gorm:"column:nID"`
+	NID            int       `json:"nid" gorm:"column:nid"`
 	EnID           int       `json:"en_id" gorm:"column:en_id"`
 	DayReport      time.Time `json:"day_report" gorm:"column:day_report"`
 	RepYear        int       `json:"rep_year" gorm:"column:rep_year"`

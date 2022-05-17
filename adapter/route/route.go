@@ -2,18 +2,14 @@ package route
 
 import (
 	"context"
+	"github.com/fatih/structs"
+	"github.com/gin-gonic/gin"
+	"github.com/globalsign/mgo/bson"
+	"github.com/pkg/errors"
 	"net/http"
-	"net/url"
 	"reflect"
 	"vosBlack/adapter/error_code"
 	"vosBlack/adapter/log"
-	"vosBlack/common"
-
-	"github.com/fatih/structs"
-	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/globalsign/mgo/bson"
-	"github.com/pkg/errors"
 )
 
 const defaultMemory = 32 * 1024 * 1024
@@ -89,11 +85,6 @@ func checkMethod(method interface{}) (mV reflect.Value, reqT, replyT reflect.Typ
 		err = ErrMustOneOut
 		return
 	}
-	//retT := mT.Out(0)
-	//if retT != replyErrorType {
-	//	err = ErrMustReplyErrorPtr
-	//	return
-	//}
 	return mV, reqT, replyT, err
 }
 
@@ -152,27 +143,7 @@ func CreateHandlerFuncWithLogger(method interface{}, l log.Logger) gin.HandlerFu
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		req := reflect.New(reqT)
-		_ = c.Request.ParseForm()
-		_ = c.Request.ParseMultipartForm(defaultMemory)
-		ip := c.ClientIP()
-		formValue := c.Request.Form
-		originForm := url.Values{}
-		for k, vs := range formValue {
-			originForm[k] = vs
-			t := []string{}
-			for _, v := range vs {
-				if v != "" {
-					t = append(t, v)
-				}
-			}
-			if len(t) == 0 {
-				delete(formValue, k)
-			} else {
-				formValue[k] = t
-			}
-		}
-		log.WithField("form", c.Request.Form).Debug(ctx, "request param")
-		if err := c.ShouldBindWith(req.Interface(), binding.Form); err != nil {
+		if err := c.Bind(req.Interface()); err != nil {
 			replyError := error_code.Error(error_code.CodeParamWrong, err.Error())
 			c.JSON(http.StatusOK, replyError)
 			l.WithFields(log.Fields{
@@ -181,14 +152,6 @@ func CreateHandlerFuncWithLogger(method interface{}, l log.Logger) gin.HandlerFu
 			}).Warn(ctx, "bind param failed")
 			return
 		}
-
-		c.Request.Form = originForm //把request里面的Form还原为原始form，以便后续使用
-		ctx = context.WithValue(ctx, OriginFormKey, originForm)
-		ctx = context.WithValue(ctx, BindFormKey, formValue)
-		ctx = context.WithValue(ctx, common.IPCtxKey, ip)
-		callFieldInit(ctx, req)
-		processReq(ctx, req)
-
 		reply := reflect.New(replyT)
 		l.WithFields(log.Fields{
 			"func": mV.Type().String(),
@@ -197,12 +160,6 @@ func CreateHandlerFuncWithLogger(method interface{}, l log.Logger) gin.HandlerFu
 		results := mV.Call([]reflect.Value{reflect.ValueOf(ctx), req, reply})
 		err, _ := results[0].Interface().(*error_code.ReplyError)
 		if err != nil {
-			if err.IsAutoMsg() {
-				msg := error_code.ErrCodeMessage(err.Code)
-				if msg != "" {
-					err.Message = msg
-				}
-			}
 			l.WithFields(log.Fields{
 				"req": c.Request.URL,
 				"err": err,
@@ -220,3 +177,75 @@ func CreateHandlerFuncWithLogger(method interface{}, l log.Logger) gin.HandlerFu
 		c.PureJSON(http.StatusOK, m)
 	}
 }
+
+//func CreateHandlerFuncWithLogger(method interface{}, l log.Logger) gin.HandlerFunc {
+//	mV, reqT, replyT, err := checkMethod(method)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	return func(c *gin.Context) {
+//		ctx := c.Request.Context()
+//		req := reflect.New(reqT)
+//		_ = c.Request.ParseForm()
+//		_ = c.Request.ParseMultipartForm(defaultMemory)
+//		ip := c.ClientIP()
+//		formValue := c.Request.Form
+//		originForm := url.Values{}
+//		for k, vs := range formValue {
+//			originForm[k] = vs
+//			t := []string{}
+//			for _, v := range vs {
+//				if v != "" {
+//					t = append(t, v)
+//				}
+//			}
+//			if len(t) == 0 {
+//				delete(formValue, k)
+//			} else {
+//				formValue[k] = t
+//			}
+//		}
+//		log.WithField("form", c.Request.Form).Debug(ctx, "request param")
+//		if err := c.ShouldBindWith(req.Interface(), binding.Form); err != nil {
+//			replyError := error_code.Error(error_code.CodeParamWrong, err.Error())
+//			c.JSON(http.StatusOK, replyError)
+//			l.WithFields(log.Fields{
+//				"req": c.Request.URL,
+//				"err": err,
+//			}).Warn(ctx, "bind param failed")
+//			return
+//		}
+//
+//		c.Request.Form = originForm //把request里面的Form还原为原始form，以便后续使用
+//		ctx = context.WithValue(ctx, OriginFormKey, originForm)
+//		ctx = context.WithValue(ctx, BindFormKey, formValue)
+//		ctx = context.WithValue(ctx, common.IPCtxKey, ip)
+//		callFieldInit(ctx, req)
+//		processReq(ctx, req)
+//
+//		reply := reflect.New(replyT)
+//		l.WithFields(log.Fields{
+//			"func": mV.Type().String(),
+//			"req":  req,
+//		}).Debugf(ctx, "invoke handler")
+//		results := mV.Call([]reflect.Value{reflect.ValueOf(ctx), req, reply})
+//		err, _ := results[0].Interface().(*error_code.ReplyError)
+//		if err != nil {
+//			l.WithFields(log.Fields{
+//				"req": c.Request.URL,
+//				"err": err,
+//			}).Warn(ctx, "handler err")
+//			c.JSON(0, err)
+//			return
+//		}
+//		m := structToMap(reply.Interface())
+//		if _, ok := m["code"]; !ok {
+//			m["code"] = 0
+//		}
+//		if _, ok := m["message"]; !ok {
+//			m["message"] = ""
+//		}
+//		c.PureJSON(http.StatusOK, m)
+//	}
+//}

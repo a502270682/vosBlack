@@ -7,7 +7,7 @@ import (
 )
 
 type MobilePattern struct {
-	NID            int       `json:"nid,omitempty" gorm:"column:nID"`
+	NID            int       `json:"nid,omitempty" gorm:"column:nid"`
 	Pattern        string    `json:"pattern" gorm:"column:pattern"`     // 靓号正则表达式
 	TypeName       string    `json:"type_name" gorm:"column:type_name"` // 靓号名称
 	IsSort         int       `json:"is_sort" gorm:"column:is_sort"`

@@ -7,7 +7,7 @@ import (
 )
 
 type GatewayApplyHourList struct {
-	NID            int       `json:"nID" gorm:"column:nID"`
+	NID            int       `json:"nid" gorm:"column:nid"`
 	GwID           int       `json:"gw_id" gorm:"column:gw_id"`
 	DayReport      time.Time `json:"day_report" gorm:"column:day_report"`
 	RepYear        int       `json:"rep_year" gorm:"column:rep_year"`

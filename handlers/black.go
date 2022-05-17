@@ -25,6 +25,12 @@ func getClientIP(c *gin.Context) string {
 	return ip
 }
 
+type CommonRsp struct {
+	Code   int
+	Msg    string
+	Status int
+}
+
 // 外部号码改写规则
 func BlackCheckHandler(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -33,10 +39,7 @@ func BlackCheckHandler(c *gin.Context) {
 	companyIPInfo, err := service.GetCompanyByIP(ctx, ip)
 	// 检查企业实体是否存在和状态是否激活
 	if err != nil || (companyIPInfo != nil && companyIPInfo.IStatus != model.IStatusActive) {
-		c.JSON(http.StatusOK, struct {
-			Code   int
-			Status int
-		}{
+		c.JSON(http.StatusOK, CommonRsp{
 			Code:   0,
 			Status: common.NotFound.Int(),
 		})

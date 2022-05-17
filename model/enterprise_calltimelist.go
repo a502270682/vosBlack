@@ -8,7 +8,7 @@ import (
 
 // EnterpriseCalltimelist 呼叫时段
 type EnterpriseCalltimelist struct {
-	NID         int       `json:"nid,omitempty" gorm:"column:nID"`
+	NID         int       `json:"nid,omitempty" gorm:"column:nid"`
 	EnID        int       `json:"en_id,omitempty" gorm:"column:en_id"`   // 请求企业ID
 	BlackID     int       `json:"black_id" gorm:"column:black_id"`       // 黑名单规则id  t_enterprise_blacklist的nid
 	TimeName    string    `json:"timename" gorm:"column:timename"`       // 时间段名称

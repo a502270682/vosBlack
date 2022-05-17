@@ -2,6 +2,13 @@ package common
 
 type RespCode int
 type RespStatus int
+type RequestCommonErrorCode int
+
+const (
+	InvalidParam        RequestCommonErrorCode = 400
+	MethodNotFound      RequestCommonErrorCode = 404
+	InternalServerError RequestCommonErrorCode = 500
+)
 
 const (
 	StatusOK            RespStatus = 12000 // 正常呼叫
