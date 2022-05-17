@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/glenn-brown/golang-pkg-pcre/src/pkg/pcre"
 	"gorm.io/gorm"
 	"strings"
 	"time"
@@ -66,48 +67,48 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 		}
 	}()
 	// 判断白名单
-	//if blackRule.IsWhitenum == 1 {
-	//	isExist, err := IsWhiteNum(ctx, realCallee, enID)
-	//	if err != nil && err != gorm.ErrRecordNotFound {
-	//		return common.SystemInternalError
-	//	}
-	//	if isExist {
-	//		wnHitCount = 1
-	//		//logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 1, 0, 0, 0, 0, 0, 0)
-	//		return common.StatusOK
-	//	}
-	//}
-	//// 判断呼叫时间段
-	//if blackRule.IsCalltime == 1 {
-	//	callTimeList, err := model.GetEnterpriseCalltimelistImpl().GetByEnID(ctx, enID, blackRule.NID)
-	//	if err != nil && err != gorm.ErrRecordNotFound {
-	//		return common.SystemInternalError
-	//	}
-	//	if err == nil && callTimeList != nil {
-	//		curHour, curMintue := utils.GetCurHourAndMinute()
-	//		if !(callTimeList.BeginHour <= curHour &&
-	//			curHour <= callTimeList.EndHour &&
-	//			callTimeList.BeginMinute <= curMintue &&
-	//			curMintue < callTimeList.Edminute) {
-	//			return common.UnReachTime
-	//		}
-	//	}
-	//}
-	//// 判断靓号
-	//if blackRule.PatternLevel != -1 {
-	//	mobilePatternList, err := model.GetMobilePatternImpl().GetListByMbLevel(ctx, blackRule.PatternLevel)
-	//	if err != nil {
-	//		return common.SystemInternalError
-	//	}
-	//	mpRequestCount = 1
-	//	for _, value := range mobilePatternList {
-	//		reg := pcre.MustCompile(value.Pattern, 0)
-	//		if len(reg.FindIndex([]byte(realCallee), 0)) > 0 {
-	//			mpHitCount = 1
-	//			return common.PrettyNumber
-	//		}
-	//	}
-	//}
+	if blackRule.IsWhitenum == 1 {
+		isExist, err := IsWhiteNum(ctx, realCallee, enID)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return common.SystemInternalError
+		}
+		if isExist {
+			wnHitCount = 1
+			//logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 1, 0, 0, 0, 0, 0, 0)
+			return common.StatusOK
+		}
+	}
+	// 判断呼叫时间段
+	if blackRule.IsCalltime == 1 {
+		callTimeList, err := model.GetEnterpriseCalltimelistImpl().GetByEnID(ctx, enID, blackRule.NID)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return common.SystemInternalError
+		}
+		if err == nil && callTimeList != nil {
+			curHour, curMintue := utils.GetCurHourAndMinute()
+			if !(callTimeList.BeginHour <= curHour &&
+				curHour <= callTimeList.EndHour &&
+				callTimeList.BeginMinute <= curMintue &&
+				curMintue < callTimeList.Edminute) {
+				return common.UnReachTime
+			}
+		}
+	}
+	// 判断靓号
+	if blackRule.PatternLevel != -1 {
+		mobilePatternList, err := model.GetMobilePatternImpl().GetListByMbLevel(ctx, blackRule.PatternLevel)
+		if err != nil {
+			return common.SystemInternalError
+		}
+		mpRequestCount = 1
+		for _, value := range mobilePatternList {
+			reg := pcre.MustCompile(value.Pattern, 0)
+			if len(reg.FindIndex([]byte(realCallee), 0)) > 0 {
+				mpHitCount = 1
+				return common.PrettyNumber
+			}
+		}
+	}
 	// 判断本地黑名单
 	if blackRule.BlacknumLevel != -1 {
 		mobile, err := model.GetMobileBlackApi().GetOneByMobileAll(ctx, prefix, realCallee)

@@ -47,7 +47,7 @@ func BlackCheckHandler(c *gin.Context) {
 	}
 	// 判断余额
 	if !haveBalance(ctx, companyIPInfo.EnID) {
-		Error(c, common.RespError, common.NoBalance, companyIPInfo.Inputtype)
+		Error(c, common.RespError, common.NoBalance, companyIPInfo.Inputtype, nil)
 		return
 	}
 	// 解析参数
@@ -58,13 +58,13 @@ func BlackCheckHandler(c *gin.Context) {
 			log.Warnf(ctx, "UpsertEnterpriseApplyHourList fail, err:%+v", err)
 		}
 		if err == common.SignError {
-			Error(c, common.SignErrorResp, common.NotFound, companyIPInfo.Inputtype)
+			Error(c, common.SignErrorResp, common.NotFound, companyIPInfo.Inputtype, nil)
 		} else if err == common.ReqParamError {
-			Error(c, common.ParamError, common.NotFound, companyIPInfo.Inputtype)
+			Error(c, common.ParamError, common.NotFound, companyIPInfo.Inputtype, nil)
 		} else if err == common.ReqAKError {
-			Error(c, common.AKError, common.NotFound, companyIPInfo.Inputtype)
+			Error(c, common.AKError, common.NotFound, companyIPInfo.Inputtype, nil)
 		} else {
-			Error(c, common.RespError, common.NotFound, companyIPInfo.Inputtype)
+			Error(c, common.RespError, common.NotFound, companyIPInfo.Inputtype, nil)
 		}
 		return
 	}
@@ -158,7 +158,7 @@ func standloneCheck(c *gin.Context, req *proto.CommonReq, inputType int, ipID in
 	realCallee := matchs[7]
 	respStatus := service.CommonCheck(ctx, realCallee, enID, ipID, req.CallID, req.Caller, req.Callee)
 	if respStatus != common.StatusOK {
-		Error(c, common.RespError, respStatus, inputType)
+		Error(c, common.RespError, respStatus, inputType, req)
 		return
 	}
 	if inputType == common.VOSRewrite {
