@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/glenn-brown/golang-pkg-pcre/src/pkg/pcre"
 	"gorm.io/gorm"
-	"regexp"
 	"strings"
 	"time"
 	"vosBlack/adapter/http"
@@ -102,8 +102,8 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 		}
 		mpRequestCount = 1
 		for _, value := range mobilePatternList {
-			reg := regexp.MustCompile(value.Pattern)
-			if reg.Match([]byte(realCallee)) {
+			reg := pcre.MustCompile(value.Pattern, 0)
+			if len(reg.FindIndex([]byte(realCallee), 0)) > 0 {
 				mpHitCount = 1
 				return common.PrettyNumber
 			}

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"regexp"
+	"github.com/glenn-brown/golang-pkg-pcre/src/pkg/pcre"
 	"testing"
 )
 
@@ -13,9 +13,9 @@ func Test_FindStringSubmatch(t *testing.T) {
 }
 
 func Test_Regxp(t *testing.T) {
-	reg := regexp.MustCompile("^\\d+(\\d)\\1{2}(?!\\1)\\d$")
-	realCallee := "15121601112"
-	if reg.Match([]byte(realCallee)) {
+	a := pcre.MustCompile("^\\d+(\\d)\\1{2}(?!\\1)\\d$", 0)
+	realCallee := "15121601113"
+	if len(a.FindIndex([]byte(realCallee), 0)) > 0 {
 		fmt.Println("匹配成功")
 	} else {
 		fmt.Println("匹配失败")
