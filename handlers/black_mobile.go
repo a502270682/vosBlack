@@ -16,10 +16,7 @@ func BlackMobileAddHandler(ctx context.Context, req *proto.MobileBlackAddReq, rs
 	}
 	prefix := req.MobileAll[:3]
 	mb, err := model.GetMobileBlackApi().GetOneByMobile(ctx, prefix, req.Mobile)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return error_code.Error(error_code.CodeParamWrong, "mobile_black not found")
-		}
+	if err != nil && err != gorm.ErrRecordNotFound {
 		return error_code.Error(error_code.CodeSystemError, err.Error())
 	}
 	if mb != nil {
