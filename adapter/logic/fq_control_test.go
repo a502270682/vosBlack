@@ -4,14 +4,10 @@ import (
 	"context"
 	"testing"
 	"vosBlack/adapter/redis"
-	"vosBlack/config"
 	"vosBlack/utils"
 )
 
 func init() {
-	config.SetConfigForTest(config.Config{
-		FqCountSavedDay: 1,
-	})
 	err := redis.Initialize(&redis.RedisConf{
 		Name:       "default",
 		Addr:       "127.0.0.1:6379",
@@ -50,26 +46,28 @@ func TestFqControl(t *testing.T) {
 	yesterday := utils.GetLastNDay0TimeStamp(1)
 	yyesterday := utils.GetLastNDay0TimeStamp(2)
 
+	expireDay := 2
+
 	err := setCache(ctx, enID, today, yesterday, yyesterday)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	count, err := GetEnterpriseFqFromStartDay(ctx, enID, today)
+	count, err := GetEnterpriseFqFromStartDay(ctx, enID, today, expireDay)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if count != 2 {
 		t.Fatal("today not correct", count)
 	}
-	count, err = GetEnterpriseFqFromStartDay(ctx, enID, yesterday)
+	count, err = GetEnterpriseFqFromStartDay(ctx, enID, yesterday, expireDay)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if count != 8 {
 		t.Fatal("yesterday not correct", count)
 	}
-	count, err = GetEnterpriseFqFromStartDay(ctx, enID, yyesterday)
+	count, err = GetEnterpriseFqFromStartDay(ctx, enID, yyesterday, expireDay)
 	if err != nil {
 		t.Fatal(err)
 	}

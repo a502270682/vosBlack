@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func GetLastNDay0TimeStamp(n int64) string {
+func GetLastNDay0TimeStamp(n int) string {
 	t := time.Now().Add(-time.Hour * 24 * time.Duration(n))
 	return strconv.FormatInt(time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.Local).Unix(), 10)
 }

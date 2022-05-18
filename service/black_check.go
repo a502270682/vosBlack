@@ -6,7 +6,6 @@ import (
 	"github.com/glenn-brown/golang-pkg-pcre/src/pkg/pcre"
 	"gorm.io/gorm"
 	"strings"
-	"time"
 	"vosBlack/adapter/http"
 	"vosBlack/adapter/log"
 	"vosBlack/adapter/logic"
@@ -65,6 +64,13 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 		if err != nil {
 			log.Warnf(ctx, "UpsertEnterpriseApplyHourList failed, err:%+v", err)
 		}
+		// todo @feiyangguo 目前是先计算是否超过频次，再累计该次，看后续是否需要调整
+		if fqRequestCount > 0 {
+			err = logic.AddEnterpriseFqCache(ctx, enID, utils.GetLastNDay0TimeStamp(0), 1)
+			if err != nil {
+				log.Warnf(ctx, fmt.Sprintf("AddEnterpriseFqCache fail, err:%s", err.Error()))
+			}
+		}
 	}()
 	// 判断白名单
 	if blackRule.IsWhitenum == 1 {
@@ -120,10 +126,10 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 			return common.BlackMobile
 		}
 	}
-	if blackRule.IsFrequency != 1 {
+	if blackRule.IsFrequency == 1 {
 		if blackRule.CallCycle != -1 && blackRule.CallCount > 0 {
-			startDate := time.Now().AddDate(0, 0, -blackRule.CallCycle).Format("20060102")
-			frequencyCount, err := logic.GetEnterpriseFqFromStartDay(ctx, enID, startDate)
+			startDate := utils.GetLastNDay0TimeStamp(blackRule.CallCycle)
+			frequencyCount, err := logic.GetEnterpriseFqFromStartDay(ctx, enID, startDate, blackRule.CallCycle)
 			if err != nil {
 				return common.SystemInternalError
 			}

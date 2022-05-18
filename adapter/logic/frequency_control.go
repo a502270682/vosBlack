@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"vosBlack/adapter/log"
 	"vosBlack/adapter/redis"
-	"vosBlack/config"
 	"vosBlack/utils"
 )
 
@@ -45,7 +44,7 @@ func AddEnterpriseFqCache(ctx context.Context, enID int, dayStamp string, count 
 }
 
 // 获取从目标日期时间戳开始记录的该企业请求次数
-func GetEnterpriseFqFromStartDay(ctx context.Context, enID int, startDayStamp string) (int64, error) {
+func GetEnterpriseFqFromStartDay(ctx context.Context, enID int, startDayStamp string, callCycle int) (int64, error) {
 	m, err := redis.GetDefaultRedisClient().HGetAll(ctx, enterpriseFqHashMapKey(enID)).Result()
 	if err != nil {
 		if err == redis.ErrNil {
@@ -54,7 +53,7 @@ func GetEnterpriseFqFromStartDay(ctx context.Context, enID int, startDayStamp st
 		return 0, err
 	}
 	total := int64(0)
-	expireDay := utils.GetLastNDay0TimeStamp(config.GetConfig().FqCountSavedDay)
+	expireDay := utils.GetLastNDay0TimeStamp(callCycle)
 	for day, count := range m {
 		c, _ := strconv.ParseInt(count, 10, 64)
 		if day >= startDayStamp {
