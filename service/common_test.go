@@ -18,7 +18,7 @@ func init() {
 		Password: "LUbin123!",
 		Host:     "bj-cynosdbmysql-grp-pofd9c6u.sql.tencentcdb.com",
 		Port:     22551,
-		Db:       "test",
+		Db:       "vos_black",
 		MaxIdle:  5,
 		MaxOpen:  10,
 		Debug:    true,

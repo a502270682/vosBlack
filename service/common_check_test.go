@@ -3,13 +3,19 @@ package service
 import (
 	"context"
 	"testing"
+	"vosBlack/common"
 )
 
-func TestCommonCheck(t *testing.T) {
+func TestCommonCheckForMobileBlack(t *testing.T) {
 	ctx := context.Background()
-	realCaller := "13990163799"
+	realCaller := "15190163799"
 	enID := 1
 	ipID := 1
 	callID, caller, callee := "", "", ""
-	_ = CommonCheck(ctx, realCaller, enID, ipID, callID, caller, callee)
+	// mobile_black check
+	retStatus := CommonCheck(ctx, realCaller, enID, ipID, callID, caller, callee)
+	if retStatus != common.BlackMobile {
+		t.Fatal("should get 12001, but get", retStatus)
+	}
+	t.Log("success")
 }
