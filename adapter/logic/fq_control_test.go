@@ -40,6 +40,7 @@ func setCache(ctx context.Context, enID int, today, yesterday, yyesterday string
 }
 
 func TestFqControl(t *testing.T) {
+
 	ctx := context.Background()
 	enID := 123
 	today := utils.GetLastNDay0TimeStamp(0)
