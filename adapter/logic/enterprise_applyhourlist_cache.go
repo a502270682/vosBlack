@@ -23,7 +23,7 @@ type ApplyHourListField struct {
 }
 
 func applyHourListCacheKey(enID int) string {
-	return fmt.Sprintf("vos_black_enterprise_hour_list:%d", enID)
+	return fmt.Sprintf(vosBlackEnterpriseHourListKey, enID)
 }
 
 func SetApplyHourListCache(ctx context.Context, enID int, field *ApplyHourListField) error {

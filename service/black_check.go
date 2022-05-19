@@ -27,7 +27,7 @@ func GetEnterpriseFeelList(ctx context.Context, enID int) (*model.EnterpriseFeeL
 }
 
 func IsWhiteNum(ctx context.Context, realCallee string, enID int) (bool, error) {
-	whiteNum, err := model.GetMobileWhitenumImpl().GetByWhiteNum(ctx, enID, realCallee)
+	whiteNum, err := logic.GetMobileWhiteNumWithCache(ctx, enID, realCallee)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return false, nil
@@ -50,7 +50,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 		prefix = realCallee[:3]
 	}
 	// 根据前缀和ip获取黑名单规则
-	blackRule, err := model.GetEnterpriseBlacklistImpl().GetEnterpriseBlacklistByIPAndQianzhui(ctx, ipID, prefix)
+	blackRule, err := logic.GetEnterpriseBlackListWithCache(ctx, ipID, prefix)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return common.NotFound
@@ -86,7 +86,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 	}
 	// 判断呼叫时间段
 	if blackRule.IsCalltime == 1 {
-		callTimeList, err := model.GetEnterpriseCalltimelistImpl().GetByEnID(ctx, enID, blackRule.NID)
+		callTimeList, err := logic.GetEnterpriseCallTimeListWithCache(ctx, enID, blackRule.NID)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return common.SystemInternalError
 		}
@@ -102,7 +102,7 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 	}
 	// 判断靓号
 	if blackRule.PatternLevel != -1 {
-		mobilePatternList, err := model.GetMobilePatternImpl().GetListByMbLevel(ctx, blackRule.PatternLevel)
+		mobilePatternList, err := logic.GetMobilePatternWithCache(ctx, blackRule.PatternLevel)
 		if err != nil {
 			return common.SystemInternalError
 		}

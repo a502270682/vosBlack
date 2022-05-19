@@ -22,7 +22,7 @@ type Server struct {
 	config *config.Config
 }
 
-var flagConfigPath = flag.String("config", "./vos_black.toml", "")
+var flagConfigPath = flag.String("config", "./config/local.toml", "")
 
 func main() {
 	rand.Seed(time.Now().UnixNano())

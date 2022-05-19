@@ -16,7 +16,7 @@ import (
 
 // key:enterprise_id field:day(ex:2006-01-02) value:5(已访问次数)
 func enterpriseFqHashMapKey(enID int) string {
-	return fmt.Sprintf("vos_black_enterprise_frequency:%d", enID)
+	return fmt.Sprintf(vosBlackEnterpriseFrequencyKey, enID)
 }
 
 func GetEnterpriseFqCache(ctx context.Context, enID int, dayStamp string) (int64, error) {

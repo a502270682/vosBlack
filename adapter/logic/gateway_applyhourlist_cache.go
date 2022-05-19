@@ -16,7 +16,7 @@ type GwApplyHourListField struct {
 }
 
 func gwApplyHourListCacheKey(gwID int) string {
-	return fmt.Sprintf("vos_black_gw_hour_list:%d", gwID)
+	return fmt.Sprintf(vosBlackGatewayHourListKey, gwID)
 }
 
 func SetGwApplyHourListCache(ctx context.Context, gwID int, field *GwApplyHourListField) error {
