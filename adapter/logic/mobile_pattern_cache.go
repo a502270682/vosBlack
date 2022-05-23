@@ -25,9 +25,11 @@ func GetMobilePatternWithCache(ctx context.Context, mbLevel int) ([]*model.Mobil
 			return nil, err
 		}
 		// 如果取到了，存一下缓存
-		err = SetMobilePatternCache(ctx, mbLevel, mpList)
-		if err != nil {
-			log.Warnf(ctx, "SetMobilePatternCache failed, err:%s, mbLevel:%d", err.Error(), mbLevel)
+		if len(mpList) > 0 {
+			err = SetMobilePatternCache(ctx, mbLevel, mpList)
+			if err != nil {
+				log.Warnf(ctx, "SetMobilePatternCache failed, err:%s, mbLevel:%d", err.Error(), mbLevel)
+			}
 		}
 		return mpList, nil
 	}

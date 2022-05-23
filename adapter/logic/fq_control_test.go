@@ -3,21 +3,20 @@ package logic
 import (
 	"context"
 	"testing"
-	"vosBlack/adapter/redis"
 	"vosBlack/utils"
 )
 
-func init() {
-	err := redis.Initialize(&redis.RedisConf{
-		Name:       "default",
-		Addr:       "127.0.0.1:6379",
-		DB:         0,
-		MaxRetries: 3,
-	})
-	if err != nil {
-		panic(err)
-	}
-}
+//func init() {
+//	err := redis.Initialize(&redis.RedisConf{
+//		Name:       "default",
+//		Addr:       "127.0.0.1:6379",
+//		DB:         0,
+//		MaxRetries: 3,
+//	})
+//	if err != nil {
+//		panic(err)
+//	}
+//}
 
 func setCache(ctx context.Context, enID int, today, yesterday, yyesterday string) error {
 	err := AddEnterpriseFqCache(ctx, enID, today, 2)
