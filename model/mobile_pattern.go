@@ -42,6 +42,7 @@ func InitMobilePatternRepo(db *gorm.DB) {
 
 type MobilePatternRepo interface {
 	GetListByMbLevel(ctx context.Context, mbLevel int) ([]*MobilePattern, error)
+	GetAllActiveMbLevels(ctx context.Context) ([]*MobilePattern, error)
 }
 
 func GetMobilePatternImpl() MobilePatternRepo {
@@ -52,4 +53,13 @@ func (m *MobilePatternImpl) GetListByMbLevel(ctx context.Context, mbLevel int) (
 	var res []*MobilePattern
 	err := m.DB.WithContext(ctx).Where("mb_level <= ?", mbLevel).Find(&res).Error
 	return res, err
+}
+
+func (m *MobilePatternImpl) GetAllActiveMbLevels(ctx context.Context) ([]*MobilePattern, error) {
+	var res []*MobilePattern
+	err := m.DB.WithContext(ctx).Where("i_status = ?", IStatusActive).Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

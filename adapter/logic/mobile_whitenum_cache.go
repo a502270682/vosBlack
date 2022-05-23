@@ -39,10 +39,10 @@ func GetMobileWhiteNumWithCache(ctx context.Context, enID int, whiteNum string) 
 	return ret, nil
 }
 
-func SetMobileWhiteNumCache(ctx context.Context, ipID int, prefix string, blacklist *model.MobileWhitenum) error {
-	res, err := json.Marshal(blacklist)
+func SetMobileWhiteNumCache(ctx context.Context, enID int, whiteNum string, whitenum *model.MobileWhitenum) error {
+	res, err := json.Marshal(whitenum)
 	if err != nil {
 		return err
 	}
-	return redis.GetDefaultRedisClient().Set(ctx, mobileWhiteNumKey(ipID, prefix), string(res), 0).Err()
+	return redis.GetDefaultRedisClient().Set(ctx, mobileWhiteNumKey(enID, whiteNum), string(res), 0).Err()
 }

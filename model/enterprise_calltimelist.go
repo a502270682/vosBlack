@@ -38,6 +38,7 @@ func InitEnterpriseCalltimelistRepo(db *gorm.DB) {
 
 type EnterpriseCalltimelistRepo interface {
 	GetByEnID(ctx context.Context, enID int, blackID int) (*EnterpriseCalltimelist, error)
+	GetAll(ctx context.Context) ([]*EnterpriseCalltimelist, error)
 }
 
 func GetEnterpriseCalltimelistImpl() EnterpriseCalltimelistRepo {
@@ -51,4 +52,13 @@ func (e *EnterpriseCalltimelistImpl) GetByEnID(ctx context.Context, enID int, bl
 		Where("black_id = ?", blackID).
 		First(res).Error
 	return res, err
+}
+
+func (e *EnterpriseCalltimelistImpl) GetAll(ctx context.Context) ([]*EnterpriseCalltimelist, error) {
+	res := make([]*EnterpriseCalltimelist, 0)
+	err := e.DB.WithContext(ctx).Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
