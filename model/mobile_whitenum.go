@@ -30,6 +30,7 @@ var mobileWhitenumImpl *MobileWhitenumImpl
 
 type MobileWhitenumRepo interface {
 	GetByWhiteNum(ctx context.Context, enID int, whiteNum string) (*MobileWhitenum, error)
+	GetAllActiveMw(ctx context.Context) ([]*MobileWhitenum, error)
 }
 
 func InitMobileWhitenumRepo(d *gorm.DB) {
@@ -47,4 +48,13 @@ func (m *MobileWhitenumImpl) GetByWhiteNum(ctx context.Context, enID int, whiteN
 	err := m.DB.WithContext(ctx).Where("en_id = ?", enID).
 		Where("whitenum = ?", whiteNum).Where("i_status = 1").First(res).Error
 	return res, err
+}
+
+func (m *MobileWhitenumImpl) GetAllActiveMw(ctx context.Context) ([]*MobileWhitenum, error) {
+	res := make([]*MobileWhitenum, 0)
+	err := m.DB.WithContext(ctx).Where("i_status = ?", IStatusActive).Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

@@ -35,6 +35,7 @@ type EnterpriseBlacklistImpl struct {
 
 type EnterpriseBlacklistRepo interface {
 	GetEnterpriseBlacklistByIPAndQianzhui(ctx context.Context, ipID int, prefix string) (*EnterpriseBlacklist, error)
+	GetAllEnterpriseBlacklist(ctx context.Context) ([]*EnterpriseBlacklist, error)
 }
 
 func InitEnterpriseBlacklistRepo(d *gorm.DB) {
@@ -51,4 +52,13 @@ func (e *EnterpriseBlacklistImpl) GetEnterpriseBlacklistByIPAndQianzhui(ctx cont
 	res := &EnterpriseBlacklist{}
 	err := e.DB.WithContext(ctx).Where("en_ip_id = ?", ipID).Where("qianzhui = ?", prefix).First(res).Error
 	return res, err
+}
+
+func (e *EnterpriseBlacklistImpl) GetAllEnterpriseBlacklist(ctx context.Context) ([]*EnterpriseBlacklist, error) {
+	res := make([]*EnterpriseBlacklist, 0)
+	err := e.DB.WithContext(ctx).Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

@@ -19,4 +19,6 @@ func routes(engine *gin.Engine) {
 	route.Route(admin, http.MethodPost, "/blackMobile/del", handlers.BlackMobileDelHandler)
 	route.Route(admin, http.MethodGet, "/blackMobile/list", handlers.BlackMobileListHandler)
 	route.Route(admin, http.MethodGet, "/blackMobile/info", handlers.BlackMobileInfoHandler)
+
+	route.Route(admin, http.MethodPost, "/cache/update", handlers.CacheUpdate)
 }

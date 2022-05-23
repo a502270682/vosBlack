@@ -39,8 +39,8 @@ func GetEnterpriseCallTimeListWithCache(ctx context.Context, enID int, blackID i
 	return ret, nil
 }
 
-func SetEnterpriseCallTimeListCache(ctx context.Context, enID int, blackID int, blacklist *model.EnterpriseCalltimelist) error {
-	res, err := json.Marshal(blacklist)
+func SetEnterpriseCallTimeListCache(ctx context.Context, enID int, blackID int, calltimelist *model.EnterpriseCalltimelist) error {
+	res, err := json.Marshal(calltimelist)
 	if err != nil {
 		return err
 	}
