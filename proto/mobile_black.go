@@ -15,7 +15,6 @@ type MobileBlackAddRsp struct {
 }
 
 type BlackMobileDelReq struct {
-	NID       int    `json:"nid" form:"nid"`
 	MobileAll string `json:"mobile_all" form:"mobile_all"`
 }
 

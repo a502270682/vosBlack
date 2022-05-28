@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"time"
 	"vosBlack/adapter/error_code"
 	"vosBlack/model"
 	"vosBlack/proto"
+
+	"gorm.io/gorm"
 )
 
 func BlackMobileAddHandler(ctx context.Context, req *proto.MobileBlackAddReq, rsp *proto.MobileBlackAddRsp) *error_code.ReplyError {
@@ -15,6 +17,10 @@ func BlackMobileAddHandler(ctx context.Context, req *proto.MobileBlackAddReq, rs
 		return error_code.Error(error_code.CodeParamWrong, fmt.Sprintf("mobile_all(%s) or mobile(%s) or en_id(%d) or gw_id(%d) is needed", req.MobileAll, req.Mobile, req.EnID, req.GwId))
 	}
 	prefix := req.MobileAll[:3]
+	mobile := req.MobileAll[3:]
+	if mobile != req.Mobile {
+		return error_code.Error(error_code.CodeParamWrong, errors.New("mobile_all and mobile is different").Error())
+	}
 	mb, err := model.GetMobileBlackApi().GetOneByMobile(ctx, prefix, req.Mobile)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return error_code.Error(error_code.CodeSystemError, err.Error())
@@ -67,6 +73,9 @@ func BlackMobileListHandler(ctx context.Context, req *proto.BlackMobileListReq, 
 	}
 	if req.PageIndex <= 0 || req.PageSize <= 0 {
 		return error_code.Error(error_code.CodeParamWrong, fmt.Sprintf("page_index(%d) or page_size(%d) is invalid", req.PageIndex, req.PageSize))
+	}
+	if req.PageSize > 1000 {
+		req.PageSize = 1000
 	}
 	limit := req.PageSize
 	offset := req.PageSize * (req.PageIndex - 1)
