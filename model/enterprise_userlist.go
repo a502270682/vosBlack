@@ -44,6 +44,6 @@ func GetEnterpriseUserlistImpl() EnterpriseUserlistRepo {
 
 func (e *EnterpriseUserlistImpl) GetByUserID(ctx context.Context, userID string) (*EnterpriseUserlist, error) {
 	res := &EnterpriseUserlist{}
-	err := e.DB.WithContext(ctx).Where("user_id = ?", userID).First(res).Error
+	err := e.DB.WithContext(ctx).Where("userid = ?", userID).First(res).Error
 	return res, err
 }

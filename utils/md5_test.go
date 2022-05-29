@@ -6,7 +6,7 @@ import (
 )
 
 func TestEncryot(t *testing.T) {
-	str := "123456789"
+	str := "admin@DaLian011423530JkQZfYxqB1"
 	sign := Encrypt(str)
 	fmt.Println(sign)
 }
