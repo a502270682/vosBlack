@@ -17,6 +17,7 @@ const (
 
 var SignError = errors.New("sign error")
 var ReqParamError = errors.New("param error")
+var ReqParamTypeError = errors.New("param type error")
 var ReqAKError = errors.New("ak error")
 
 const (

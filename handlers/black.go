@@ -205,6 +205,9 @@ func parseDongyunParam(c *gin.Context) (*proto.CommonReq, error) {
 	if err != nil {
 		return nil, err
 	}
+	if req.AK == "" {
+		return nil, common.ReqParamTypeError
+	}
 	user, err := service.GetUserByUserID(ctx, req.AK)
 	if err != nil {
 		return nil, err
@@ -231,6 +234,9 @@ func parseVOSHttpParam(c *gin.Context) (*proto.CommonReq, error) {
 	if err != nil {
 		return nil, common.ReqParamError
 	}
+	if req.RewriteE164Req.CalleeE164 == "" {
+		return nil, common.ReqParamTypeError
+	}
 	res := &proto.CommonReq{
 		CallID: strconv.Itoa(req.RewriteE164Req.CallID),
 		Callee: req.RewriteE164Req.CalleeE164,
@@ -244,6 +250,9 @@ func parseVOSRewriteParam(c *gin.Context) (*proto.CommonReq, error) {
 	err := c.BindJSON(&req)
 	if err != nil {
 		return nil, common.ReqParamError
+	}
+	if req.Callee == "" {
+		return nil, common.ReqParamTypeError
 	}
 	res := &proto.CommonReq{
 		CallID: req.CallID,
