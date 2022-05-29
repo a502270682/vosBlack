@@ -53,18 +53,20 @@ func BlackCheckHandler(c *gin.Context) {
 	// 解析参数
 	param, err := parseParam(companyIPInfo.Inputtype, c)
 	if err != nil {
-		err = logic.UpsertEnterpriseApplyHourList(ctx, companyIPInfo.EnID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
-		if err != nil {
-			log.Warnf(ctx, "UpsertEnterpriseApplyHourList fail, err:%+v", err)
-		}
 		if err == common.SignError {
 			Error(c, common.SignErrorResp, common.NotFound, companyIPInfo.Inputtype, nil)
 		} else if err == common.ReqParamError {
 			Error(c, common.ParamError, common.NotFound, companyIPInfo.Inputtype, nil)
 		} else if err == common.ReqAKError {
 			Error(c, common.AKError, common.NotFound, companyIPInfo.Inputtype, nil)
+		} else if err == common.ReqParamTypeError {
+			Error(c, common.ParamTypeError, common.NotFound, companyIPInfo.Inputtype, nil)
 		} else {
 			Error(c, common.RespError, common.NotFound, companyIPInfo.Inputtype, nil)
+		}
+		err = logic.UpsertEnterpriseApplyHourList(ctx, companyIPInfo.EnID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
+		if err != nil {
+			log.Warnf(ctx, "UpsertEnterpriseApplyHourList fail, err:%+v", err)
 		}
 		return
 	}

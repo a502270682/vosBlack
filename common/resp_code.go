@@ -42,6 +42,7 @@ const (
 	Success        = 1
 	RespError      = 0
 	ParamError     = 4001
+	ParamTypeError = 4005
 	AKError        = 4000
 	CompanyIDError = 4002
 	IPError        = 4003

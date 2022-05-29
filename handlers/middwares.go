@@ -18,23 +18,29 @@ func Error(c *gin.Context, respCode common.RespCode, respStatus common.RespStatu
 		res := &proto.BlackScreeningRsp{
 			Code:   respCode.Int(),
 			Status: respStatus.Int(),
-			CallID: resp.CallID,
-			ForbID: resp.Callee,
+		}
+		if resp != nil {
+			res.CallID = resp.CallID
+			res.ForbID = resp.Callee
 		}
 		c.JSON(http.StatusOK, res)
 	case common.VOSHttp:
 		res := &proto.BlackCheckRsp{}
 		res.Code = respCode.Int()
-		res.RewriteE164Rsp.Status = respStatus.Int()
-		res.RewriteE164Rsp.CallID = resp.CallID
-		res.RewriteE164Rsp.CallerE164 = resp.Caller
-		res.RewriteE164Rsp.CalleeE164 = resp.Callee
+		if resp != nil {
+			res.RewriteE164Rsp.Status = respStatus.Int()
+			res.RewriteE164Rsp.CallID = resp.CallID
+			res.RewriteE164Rsp.CallerE164 = resp.Caller
+			res.RewriteE164Rsp.CalleeE164 = resp.Callee
+		}
 		c.JSON(http.StatusOK, res)
 	case common.SVOSHttp, common.DongyunHttp:
 		res := &proto.BlackDongYunRsp{
 			Code:   respCode.Int(),
 			Status: respStatus.Int(),
-			CallID: resp.CallID,
+		}
+		if resp != nil {
+			res.CallID = resp.CallID
 		}
 		c.JSON(http.StatusOK, res)
 	}
