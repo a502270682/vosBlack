@@ -3,11 +3,12 @@ package logic
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"strconv"
 	"vosBlack/adapter/log"
 	"vosBlack/adapter/redis"
 	"vosBlack/utils"
+
+	"github.com/pkg/errors"
 )
 
 //type EnterpriseFrequencyInfo struct {
@@ -17,6 +18,10 @@ import (
 // key:enterprise_id field:day(ex:2006-01-02) value:5(已访问次数)
 func enterpriseFqHashMapKey(enID int) string {
 	return fmt.Sprintf(vosBlackEnterpriseFrequencyKey, enID)
+}
+
+func syncHashMapKey(enID int) string {
+	return fmt.Sprintf(syncVosBlackEnterpriseFrequencyKey, enID)
 }
 
 func GetEnterpriseFqCache(ctx context.Context, enID int, dayStamp string) (int64, error) {
@@ -45,6 +50,8 @@ func AddEnterpriseFqCache(ctx context.Context, enID int, dayStamp string, count 
 
 // 获取从目标日期时间戳开始记录的该企业请求次数
 func GetEnterpriseFqFromStartDay(ctx context.Context, enID int, startDayStamp string, callCycle int) (int64, error) {
+	redis.Lock(syncHashMapKey(enID))
+	defer redis.Unlock(syncHashMapKey(enID))
 	m, err := redis.GetDefaultRedisClient().HGetAll(ctx, enterpriseFqHashMapKey(enID)).Result()
 	if err != nil {
 		if err == redis.ErrNil {
