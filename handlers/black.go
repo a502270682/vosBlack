@@ -3,9 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 	"strings"
 	"sync"
 	"vosBlack/adapter/log"
@@ -15,6 +13,8 @@ import (
 	"vosBlack/proto"
 	"vosBlack/service"
 	"vosBlack/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 func getClientIP(c *gin.Context) string {
@@ -240,7 +240,7 @@ func parseVOSHttpParam(c *gin.Context) (*proto.CommonReq, error) {
 		return nil, common.ReqParamTypeError
 	}
 	res := &proto.CommonReq{
-		CallID: strconv.Itoa(req.RewriteE164Req.CallID),
+		CallID: req.RewriteE164Req.CallID,
 		Callee: req.RewriteE164Req.CalleeE164,
 		Caller: req.RewriteE164Req.CallerE164,
 	}

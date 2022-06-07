@@ -15,7 +15,7 @@ type BlackScreeningRsp struct {
 
 type BlackCheckReq struct {
 	RewriteE164Req struct {
-		CallID     int    `json:"callId"`     // 通话ID
+		CallID     string `json:"callId"`     // 通话ID
 		CallerE164 string `json:"callerE164"` // 主叫号码
 		CalleeE164 string `json:"calleeE164"` // 被叫号码
 	} `json:"RewriteE164Req"`
