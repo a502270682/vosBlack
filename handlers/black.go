@@ -115,11 +115,8 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 		wg.Add(1)
 		go func(num string) {
 			defer wg.Done()
-			matchs := utils.FindStringSubmatch(num)
-			prefix := num[:3]
-			// 获取真实的手机号
-			realCallee := matchs[7]
-			respStatus := service.CommonCheck(ctx, prefix, realCallee, enID, ipID, req.CallID, req.Caller, req.Callee)
+			prefix, realCallee, phoneType := utils.GetPhone(req.Callee)
+			respStatus := service.CommonCheck(ctx, prefix, realCallee, enID, ipID, req.CallID, req.Caller, req.Callee, phoneType)
 			if respStatus == common.StatusOK {
 				syncList.AppendToArray(&proto.BlackDongYunDetail{
 					Mobile: realCallee,
@@ -156,11 +153,8 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 
 func standloneCheck(c *gin.Context, req *proto.CommonReq, inputType int, ipID int, enID int) {
 	ctx := c.Request.Context()
-	matchs := utils.FindStringSubmatch(req.Callee)
-	prefix := req.Callee[:3]
-	// 获取真实的手机号
-	realCallee := matchs[7]
-	respStatus := service.CommonCheck(ctx, prefix, realCallee, enID, ipID, req.CallID, req.Caller, req.Callee)
+	prefix, realCallee, phoneType := utils.GetPhone(req.Callee)
+	respStatus := service.CommonCheck(ctx, prefix, realCallee, enID, ipID, req.CallID, req.Caller, req.Callee, phoneType)
 	if respStatus != common.StatusOK {
 		Error(c, common.RespError, respStatus, inputType, req)
 		return

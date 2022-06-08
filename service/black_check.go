@@ -43,7 +43,7 @@ func IsWhiteNum(ctx context.Context, realCallee string, enID int) (bool, error) 
 	return false, nil
 }
 
-func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int, callID, caller, callee string) common.RespStatus {
+func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int, callID, caller, callee string, phoneType int) common.RespStatus {
 	// 根据前缀和ip获取黑名单规则
 	blackRule, err := logic.GetEnterpriseBlackListWithCache(ctx, ipID, prefix)
 	if err != nil {
@@ -112,9 +112,11 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 	}
 	// 判断本地黑名单
 	if blackRule.BlacknumLevel != -1 {
-		tablePrefix := realCallee[:3]
-		if strings.HasPrefix(tablePrefix, "0") {
+		tablePrefix := ""
+		if phoneType == 0 {
 			tablePrefix = "0"
+		} else {
+			tablePrefix = realCallee[:3]
 		}
 		mobile, err := model.GetMobileBlackApi().GetOneByMobileAll(ctx, tablePrefix, realCallee)
 		if err != nil && err != gorm.ErrRecordNotFound {

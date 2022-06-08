@@ -19,7 +19,8 @@ func TestCommonCheckForMobileBlack(t *testing.T) {
 	//	t.Fatal("should get 12001, but get", retStatus)
 	//}
 	// fq_control check
-	retStatus := CommonCheck(ctx, prefix, realCaller, enID, ipID, callID, caller, callee)
+	phoneType := 1
+	retStatus := CommonCheck(ctx, prefix, realCaller, enID, ipID, callID, caller, callee, phoneType)
 	if retStatus != common.OutOfFrequency {
 		t.Fatal("should get 12003, but get", retStatus)
 	}
