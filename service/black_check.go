@@ -3,8 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/glenn-brown/golang-pkg-pcre/src/pkg/pcre"
-	"gorm.io/gorm"
 	"strings"
 	"vosBlack/adapter/http"
 	"vosBlack/adapter/log"
@@ -12,6 +10,9 @@ import (
 	"vosBlack/common"
 	"vosBlack/model"
 	"vosBlack/utils"
+
+	"github.com/glenn-brown/golang-pkg-pcre/src/pkg/pcre"
+	"gorm.io/gorm"
 )
 
 func GetCompanyByIP(ctx context.Context, ip string) (*model.EnterpriseIplist, error) {
@@ -42,13 +43,7 @@ func IsWhiteNum(ctx context.Context, realCallee string, enID int) (bool, error) 
 	return false, nil
 }
 
-func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID, caller, callee string) common.RespStatus {
-	var prefix string
-	if strings.HasPrefix(realCallee, "0") {
-		prefix = "0"
-	} else {
-		prefix = realCallee[:3]
-	}
+func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int, callID, caller, callee string) common.RespStatus {
 	// 根据前缀和ip获取黑名单规则
 	blackRule, err := logic.GetEnterpriseBlackListWithCache(ctx, ipID, prefix)
 	if err != nil {
@@ -117,7 +112,11 @@ func CommonCheck(ctx context.Context, realCallee string, enID, ipID int, callID,
 	}
 	// 判断本地黑名单
 	if blackRule.BlacknumLevel != -1 {
-		mobile, err := model.GetMobileBlackApi().GetOneByMobileAll(ctx, prefix, realCallee)
+		tablePrefix := realCallee[:3]
+		if strings.HasPrefix(tablePrefix, "0") {
+			tablePrefix = "0"
+		}
+		mobile, err := model.GetMobileBlackApi().GetOneByMobileAll(ctx, tablePrefix, realCallee)
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return common.SystemInternalError
 		}
