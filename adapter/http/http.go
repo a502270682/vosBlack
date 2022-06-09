@@ -52,9 +52,20 @@ type HuaXinBlackRewrite struct {
 	} `json:"RewriteE164Req"`
 }
 
-func (br *HuaXinBlackRewrite) Request(ctx context.Context) (*proto.BlackCheckRsp, error) {
+type HuaXinBlackRewriteRsp struct {
+	RewriteE164Rsp struct {
+		CallID     string `json:"callId"`
+		CallerE164 string `json:"callerE164"`
+		CalleeE164 string `json:"calleeE164"`
+		Code       int    `json:"code"`
+		Memo       string `json:"memo"`
+		Status     int    `json:"status"`
+	} `json:"RewriteE164Rsp"`
+}
+
+func (br *HuaXinBlackRewrite) Request(ctx context.Context) (*HuaXinBlackRewriteRsp, error) {
 	url := "http://api.bjhdsz.cn/api/v2.0/black/rewrite"
-	res := &proto.BlackCheckRsp{}
+	res := &HuaXinBlackRewriteRsp{}
 	err := PostJson(ctx, url, br, res)
 	return res, err
 }

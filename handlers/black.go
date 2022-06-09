@@ -90,7 +90,6 @@ func Check(c *gin.Context, req *proto.CommonReq, inputType, ipID, enID int) {
 	case common.SVOSHttp, common.DongyunHttp:
 		loopCheck(c, req, ipID, enID)
 	}
-	return
 }
 
 type SyncList struct {
@@ -148,7 +147,6 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 		List:          syncList.List,
 	}
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func standloneCheck(c *gin.Context, req *proto.CommonReq, inputType int, ipID int, enID int) {
@@ -163,20 +161,18 @@ func standloneCheck(c *gin.Context, req *proto.CommonReq, inputType int, ipID in
 		c.JSON(http.StatusOK, &proto.BlackScreeningRsp{
 			Code:   1,
 			CallID: req.CallID,
-			ForbID: req.Callee,
 			Status: common.StatusOK.Int(),
 		})
 	} else {
 		res := &proto.BlackCheckRsp{}
 		res.Code = 1
 		res.Memo = "success"
-		res.RewriteE164Rsp.Status = common.StatusOK.Int()
+		res.Status = common.StatusOK.Int()
 		res.RewriteE164Rsp.CallID = req.CallID
 		res.RewriteE164Rsp.CallerE164 = req.Caller
 		res.RewriteE164Rsp.CalleeE164 = req.Callee
 		c.JSON(http.StatusOK, res)
 	}
-	return
 }
 
 func parseParam(inputtype int, c *gin.Context) (*proto.CommonReq, error) {

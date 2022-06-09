@@ -9,7 +9,7 @@ type BlackScreeningReq struct {
 type BlackScreeningRsp struct {
 	Code   int    `json:"code"`
 	CallID string `json:"callId"`
-	ForbID string `json:"forbid"`
+	ForbID int    `json:"forbid"`
 	Status int    `json:"status"`
 }
 
@@ -24,8 +24,8 @@ type BlackCheckReq struct {
 type BlackCheckRsp struct {
 	Code           int    `json:"code"`
 	Memo           string `json:"memo"`
+	Status         int    `json:"status"`
 	RewriteE164Rsp struct {
-		Status     int    `json:"status"`
 		CallID     string `json:"callId"`
 		CallerE164 string `json:"callerE164"`
 		CalleeE164 string `json:"calleeE164"`
