@@ -86,11 +86,7 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 			return common.SystemInternalError
 		}
 		if err == nil && callTimeList != nil {
-			curHour, curMintue := utils.GetCurHourAndMinute()
-			if !(callTimeList.BeginHour <= curHour &&
-				curHour <= callTimeList.EndHour &&
-				callTimeList.BeginMinute <= curMintue &&
-				curMintue < callTimeList.Edminute) {
+			if !utils.IsReachTime(callTimeList.BeginHour, callTimeList.BeginMinute, callTimeList.EndHour, callTimeList.Edminute) {
 				return common.UnReachTime
 			}
 		}

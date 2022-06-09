@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -29,4 +30,21 @@ func GetCurHourAndMinute() (hour, minute int) {
 	t := time.Now()
 	return t.Truncate(1 * time.Hour).Hour(), t.Truncate(1 * time.Minute).Minute()
 
+}
+
+func IsReachTime(beginHour, beginMinute, endHour, endMinute int) bool {
+	curDay := time.Now().Format("2006-01-02")
+	beginTimeStr := fmt.Sprintf("%s %02d:%02d:00", curDay, beginHour, beginMinute)
+	endTimeStr := fmt.Sprintf("%s %02d:%02d:59", curDay, endHour, endMinute)
+	var timeLayoutStr = "2006-01-02 15:04:05"
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	beginTime, _ := time.ParseInLocation(timeLayoutStr, beginTimeStr, loc)
+	endTime, _ := time.ParseInLocation(timeLayoutStr, endTimeStr, loc)
+	currentTime := time.Now().In(loc).Unix()
+	beginTimeStamp := beginTime.Unix()
+	endTimeStamp := endTime.Unix()
+	if beginTimeStamp <= currentTime && currentTime <= endTimeStamp {
+		return true
+	}
+	return false
 }
