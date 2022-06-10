@@ -26,8 +26,8 @@ func initWithConfig(ctx context.Context, filePath string) (*config.Config, error
 	return conf, nil
 }
 
-func initLog(ctx context.Context, conf *config.Config) {
-	log.NewLoggerWithOptions(conf.Log)
+func initLog(ctx context.Context, conf *config.Config) error {
+	return log.NewLoggerWithOptions(conf.Log)
 }
 
 func initMysql(conf *config.Config) error {
@@ -56,7 +56,10 @@ func NewServer(ctx context.Context) *Server {
 		}
 		fmt.Printf("init config success. conf:%+v", conf)
 		s.config = conf
-		initLog(context.Background(), s.config)
+		err = initLog(context.Background(), s.config)
+		if err != nil {
+			return errors.Wrap(err, "fail to init log")
+		}
 		// mysql
 		err = initMysql(conf)
 		if err != nil {

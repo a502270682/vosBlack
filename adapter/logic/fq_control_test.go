@@ -45,6 +45,7 @@ func TestFqControl(t *testing.T) {
 	today := utils.GetLastNDay0TimeStamp(0)
 	yesterday := utils.GetLastNDay0TimeStamp(1)
 	yyesterday := utils.GetLastNDay0TimeStamp(2)
+	phone := "13990163799"
 
 	expireDay := 2
 
@@ -53,21 +54,21 @@ func TestFqControl(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	count, err := GetEnterpriseFqFromStartDay(ctx, enID, today, expireDay)
+	count, err := GetEnterpriseFqFromStartDay(ctx, enID, phone, today, expireDay)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if count != 2 {
 		t.Fatal("today not correct", count)
 	}
-	count, err = GetEnterpriseFqFromStartDay(ctx, enID, yesterday, expireDay)
+	count, err = GetEnterpriseFqFromStartDay(ctx, enID, phone, yesterday, expireDay)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if count != 8 {
 		t.Fatal("yesterday not correct", count)
 	}
-	count, err = GetEnterpriseFqFromStartDay(ctx, enID, yyesterday, expireDay)
+	count, err = GetEnterpriseFqFromStartDay(ctx, enID, phone, yyesterday, expireDay)
 	if err != nil {
 		t.Fatal(err)
 	}

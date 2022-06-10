@@ -41,15 +41,7 @@ func setLogger() Logger {
 		ExitFunc:     os.Exit,
 		ReportCaller: false,
 	}
-	sl := logrus.Logger{
-		Out:          os.Stderr,
-		Formatter:    formatter,
-		Hooks:        make(LevelHooks),
-		Level:        InfoLevel,
-		ExitFunc:     os.Exit,
-		ReportCaller: false,
-	}
-	return &CtxLogger{&nl, &sl}
+	return &CtxLogger{&nl}
 }
 
 type Options struct {
@@ -61,12 +53,11 @@ type Options struct {
 	Format    string `mapstructure:"format" json:"format" toml:"format"`
 }
 
-func NewLoggerWithOptions(options Options) (l Logger, err error) {
-	l = setLogger()
-	if err = initLoggerWithOptions(l, options); err != nil {
-		return nil, errors.Wrap(err, "failed to initialize logger")
+func NewLoggerWithOptions(options Options) (err error) {
+	if err = initLoggerWithOptions(logger, options); err != nil {
+		return errors.Wrap(err, "failed to initialize logger")
 	}
-	return l, nil
+	return nil
 }
 
 func initLoggerWithOptions(l Logger, options Options) (err error) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 	"vosBlack/adapter/error_code"
+	"vosBlack/adapter/log"
 	"vosBlack/model"
 	"vosBlack/proto"
 
@@ -71,6 +72,7 @@ func BlackMobileListHandler(ctx context.Context, req *proto.BlackMobileListReq, 
 	if req.Prefix == "" {
 		return error_code.Error(error_code.CodeParamWrong, "prefix should not be empty")
 	}
+	log.Info(ctx, "gfygfy")
 	if req.PageIndex <= 0 || req.PageSize <= 0 {
 		return error_code.Error(error_code.CodeParamWrong, fmt.Sprintf("page_index(%d) or page_size(%d) is invalid", req.PageIndex, req.PageSize))
 	}
