@@ -1,9 +1,11 @@
 package config
 
 import (
+	"vosBlack/adapter/log"
+	"vosBlack/adapter/redis"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"vosBlack/adapter/redis"
 )
 
 type Config struct {
@@ -13,6 +15,7 @@ type Config struct {
 	Mysql    Mysql       `mapstructure:"mysql"`
 	Redis    RedisConfig `mapstructure:"redis"`
 	//FqCountSavedDay int64       `mapstructure:"fq_count_saved_day"`
+	Log log.Options `mapstructure:"logger"`
 }
 
 // RedisConfig is the config for redis

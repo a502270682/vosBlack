@@ -2,13 +2,15 @@ package server
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
-	"github.com/urfave/cli"
+	"fmt"
 	"vosBlack/adapter/log"
 	"vosBlack/adapter/mysql"
 	"vosBlack/adapter/redis"
 	"vosBlack/config"
+
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+	"github.com/urfave/cli"
 )
 
 type Server struct {
@@ -22,6 +24,10 @@ func initWithConfig(ctx context.Context, filePath string) (*config.Config, error
 		return nil, err
 	}
 	return conf, nil
+}
+
+func initLog(ctx context.Context, conf *config.Config) {
+	log.NewLoggerWithOptions(conf.Log)
 }
 
 func initMysql(conf *config.Config) error {
@@ -43,14 +49,14 @@ func NewServer(ctx context.Context) *Server {
 			return errors.New("usage: vos_black -c configfilepath")
 		}
 
-		log.Info(ctx, "start read config: ", c.GlobalString("c"))
+		fmt.Printf("start read config: %v", c.GlobalString("c"))
 		conf, err := initWithConfig(ctx, c.GlobalString("c"))
 		if err != nil {
 			return errors.Wrap(err, "fail to init conf")
 		}
-		log.Infof(ctx, "init config success. conf:%+v", conf)
+		fmt.Printf("init config success. conf:%+v", conf)
 		s.config = conf
-
+		initLog(context.Background(), s.config)
 		// mysql
 		err = initMysql(conf)
 		if err != nil {
