@@ -61,7 +61,7 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 		}
 		// todo @feiyangguo 目前是先计算是否超过频次，再累计该次，看后续是否需要调整
 		if fqRequestCount > 0 {
-			err = logic.AddEnterpriseFqCache(ctx, enID, utils.GetLastNDay0TimeStamp(0), 1)
+			err = logic.AddEnterpriseFqCache(ctx, enID, realCallee, utils.GetLastNDay0TimeStamp(0), 1)
 			if err != nil {
 				log.Warnf(ctx, fmt.Sprintf("AddEnterpriseFqCache fail, err:%s", err.Error()))
 			}
