@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync"
@@ -45,11 +47,6 @@ func BlackCheckHandler(c *gin.Context) {
 		})
 		return
 	}
-	// 判断余额
-	if !haveBalance(ctx, companyIPInfo.EnID) {
-		Error(c, common.RespError, common.NoBalance, companyIPInfo.Inputtype, nil)
-		return
-	}
 	// 解析参数
 	param, err := parseParam(companyIPInfo.Inputtype, c)
 	if err != nil {
@@ -70,6 +67,11 @@ func BlackCheckHandler(c *gin.Context) {
 		}
 		return
 	}
+	// 判断余额
+	if !haveBalance(ctx, companyIPInfo.EnID) {
+		Error(c, common.RespError, common.NoBalance, companyIPInfo.Inputtype, param)
+		return
+	}
 	// 校验算法
 	Check(c, param, companyIPInfo.Inputtype, companyIPInfo.NID, companyIPInfo.EnID)
 	return
@@ -80,7 +82,7 @@ func haveBalance(ctx context.Context, enID int) bool {
 	if err != nil {
 		return false
 	}
-	return feel.FeeIncome-feel.FeePayout >= float64(0-feel.FeeCredit)
+	return feel.FeeIncome-feel.FeePayout > float64(0-feel.FeeCredit)
 }
 
 func Check(c *gin.Context, req *proto.CommonReq, inputType, ipID, enID int) {
@@ -178,13 +180,19 @@ func standloneCheck(c *gin.Context, req *proto.CommonReq, inputType int, ipID in
 func parseParam(inputtype int, c *gin.Context) (*proto.CommonReq, error) {
 	var req *proto.CommonReq
 	var err error
+	body := c.Request.Body
+	reqBody, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, common.ReqParamError
+	}
+	log.Infof(c.Request.Context(), " req json :%v error: %v", string(reqBody), err)
 	switch inputtype {
 	case common.VOSRewrite:
-		req, err = parseVOSRewriteParam(c)
+		req, err = parseVOSRewriteParam(reqBody)
 	case common.VOSHttp:
-		req, err = parseVOSHttpParam(c)
+		req, err = parseVOSHttpParam(reqBody)
 	case common.DongyunHttp, common.SVOSHttp:
-		req, err = parseDongyunParam(c)
+		req, err = parseDongyunParam(reqBody)
 	}
 	if err != nil {
 		return nil, err
@@ -192,17 +200,16 @@ func parseParam(inputtype int, c *gin.Context) (*proto.CommonReq, error) {
 	return req, nil
 }
 
-func parseDongyunParam(c *gin.Context) (*proto.CommonReq, error) {
-	ctx := c.Request.Context()
+func parseDongyunParam(reqBody []byte) (*proto.CommonReq, error) {
 	req := proto.BlackDongYunReq{}
-	err := c.BindJSON(&req)
+	err := json.Unmarshal(reqBody, &req)
 	if err != nil {
-		return nil, err
+		return nil, common.ReqParamError
 	}
 	if req.AK == "" {
 		return nil, common.ReqParamTypeError
 	}
-	user, err := service.GetUserByUserID(ctx, req.AK)
+	user, err := service.GetUserByUserID(context.Background(), req.AK)
 	if err != nil {
 		return nil, err
 	}
@@ -222,9 +229,9 @@ func checkSign(userID string, pass string, req proto.BlackDongYunReq) bool {
 	return utils.Encrypt(str) == req.Sign
 }
 
-func parseVOSHttpParam(c *gin.Context) (*proto.CommonReq, error) {
+func parseVOSHttpParam(reqBody []byte) (*proto.CommonReq, error) {
 	req := proto.BlackCheckReq{}
-	err := c.BindJSON(&req)
+	err := json.Unmarshal(reqBody, &req)
 	if err != nil {
 		return nil, common.ReqParamError
 	}
@@ -239,9 +246,9 @@ func parseVOSHttpParam(c *gin.Context) (*proto.CommonReq, error) {
 	return res, nil
 }
 
-func parseVOSRewriteParam(c *gin.Context) (*proto.CommonReq, error) {
+func parseVOSRewriteParam(reqBody []byte) (*proto.CommonReq, error) {
 	req := proto.BlackScreeningReq{}
-	err := c.BindJSON(&req)
+	err := json.Unmarshal(reqBody, &req)
 	if err != nil {
 		return nil, common.ReqParamError
 	}
