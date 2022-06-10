@@ -126,7 +126,7 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 	if blackRule.IsFrequency == 1 {
 		if blackRule.CallCycle != -1 && blackRule.CallCount > 0 {
 			startDate := utils.GetLastNDay0TimeStamp(blackRule.CallCycle)
-			frequencyCount, err := logic.GetEnterpriseFqFromStartDay(ctx, enID, startDate, blackRule.CallCycle)
+			frequencyCount, err := logic.GetEnterpriseFqFromStartDay(ctx, enID, realCallee, startDate, blackRule.CallCycle)
 			if err != nil {
 				return common.SystemInternalError
 			}

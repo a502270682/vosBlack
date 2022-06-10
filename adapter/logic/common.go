@@ -1,7 +1,7 @@
 package logic
 
 const (
-	vosBlackEnterpriseFrequencyKey     = "vos_black_enterprise_frequency:%d"
+	vosBlackEnterpriseFrequencyKey     = "vos_black_enterprise_frequency:%d:%s"
 	syncVosBlackEnterpriseFrequencyKey = "sync_vos_black_enterprise_frequency:%d"
 	vosBlackGatewayHourListKey         = "vos_black_gw_hour_list:%d"
 	vosBlackEnterpriseHourListKey      = "vos_black_enterprise_hour_list:%d"
