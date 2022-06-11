@@ -19,7 +19,7 @@ import (
 //}
 
 func setCache(ctx context.Context, enID int, today, yesterday, yyesterday string) error {
-	err := AddEnterpriseFqCache(ctx, enID, today, 2)
+	err := AddEnterpriseFqCache(ctx, enID, "15201441986", today, 2)
 	if err != nil {
 		return err
 	}
@@ -27,11 +27,11 @@ func setCache(ctx context.Context, enID int, today, yesterday, yyesterday string
 	//if err != nil {
 	//	return err
 	//}
-	err = AddEnterpriseFqCache(ctx, enID, yesterday, 3)
+	err = AddEnterpriseFqCache(ctx, enID, "15201441986", today, 2)
 	if err != nil {
 		return err
 	}
-	err = AddEnterpriseFqCache(ctx, enID, yyesterday, 4)
+	err = AddEnterpriseFqCache(ctx, enID, "15201441986", today, 2)
 	if err != nil {
 		return err
 	}
