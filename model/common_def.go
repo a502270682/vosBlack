@@ -12,7 +12,7 @@ const (
 type GwType int
 
 const (
-	GwTypeVosBlack        GwType = 0
+	GwTypeVosHTTP         GwType = 0
 	GwTypeVosRewrite      GwType = 1
 	GwTypeYunxuntongBlack GwType = 2
 	GwTypeDongyunBlack    GwType = 3

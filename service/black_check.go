@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
 	"vosBlack/adapter/http"
 	"vosBlack/adapter/log"
 	"vosBlack/adapter/logic"
@@ -43,7 +42,7 @@ func IsWhiteNum(ctx context.Context, realCallee string, enID int) (bool, error) 
 	return false, nil
 }
 
-func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int, callID, caller, callee string, phoneType int) common.RespStatus {
+func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int, callID interface{}, caller, callee string, phoneType int) common.RespStatus {
 	// 根据前缀和ip获取黑名单规则
 	blackRule, err := logic.GetEnterpriseBlackListWithCache(ctx, ipID, prefix)
 	if err != nil {
@@ -147,9 +146,9 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 			return common.SystemInternalError
 		}
 		gwRequestCount = 1
-		isBlack, err := requestSysGateway(ctx, enID, sysGateway.GwType, callID, caller, callee, sysGateway.GwAk, sysGateway.GwPass)
+		isBlack, err := requestSysGateway(ctx, enID, sysGateway, callID, caller, callee)
 		if err != nil {
-			return common.SystemInternalError
+			log.Errorf(ctx, "requestSysGateway error : callID: %s caller: %s callee: %s sysGateway : %+v err: %+v", callID, caller, callee, sysGateway, err)
 		}
 		if isBlack {
 			gwHitCount = 1
@@ -170,66 +169,97 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 	return common.StatusOK
 }
 
-func requestSysGateway(ctx context.Context, enID int, gwType model.GwType, callID, caller, callee string, ak, pass string) (bool, error) {
+func requestSysGateway(ctx context.Context, enID int, sg *model.SysGatewayInfo, callID interface{}, caller, callee string) (bool, error) {
 	var isBlack bool
 	var err error
-	switch gwType {
-	case 1:
-		isBlack, err = vosRewrite(ctx, enID, callID, caller, callee)
-	case 2:
-		isBlack, err = vosYunXuntong(ctx, enID, callID, caller, callee)
-	case 3:
-		isBlack, err = dongYun(ctx, enID, callID, caller, callee, ak, pass)
+	switch sg.GwType {
+	case model.GwTypeVosHTTP:
+		isBlack, err = vosHTTP(ctx, sg, enID, callID, caller, callee)
+	case model.GwTypeVosRewrite:
+		isBlack, err = vosRewrite(ctx, sg, enID, callID, caller, callee)
+	case model.GwTypeDongyunBlack:
+		isBlack, err = dongYun(ctx, sg, enID, callID, caller, callee)
+	case model.GwTypeHuaxinVosBlack:
+		isBlack, err = vosHuaXin(ctx, sg, callID, caller, callee)
 	}
 	return isBlack, err
 }
 
-func dongYun(ctx context.Context, enID int, callID string, caller string, callee, ak, pass string) (bool, error) {
-	str := strings.ToLower(fmt.Sprintf("%s%s%s", ak, callID, pass))
-	sign := utils.Encrypt(str)
-	req := &http.SysGatewayDongYun{
-		AK:     ak,
-		CallID: callID,
-		Caller: caller,
-		Callee: callee,
-		Sign:   sign,
-	}
-	res, err := req.Request(ctx)
-	if err != nil {
-		return false, err
-	}
-	if res.List[0].Forbid == 0 {
-		return true, nil
-	}
-	return false, nil
-}
-
-func vosYunXuntong(ctx context.Context, enID int, callID string, caller string, callee string) (bool, error) {
+func vosHuaXin(ctx context.Context, sg *model.SysGatewayInfo, callID interface{}, caller, callee string) (bool, error) {
 	req := &http.HuaXinBlackCheck{
 		CallID: callID,
 		Caller: caller,
 		Callee: callee,
 	}
-	res, err := req.Request(ctx)
+	res, err := req.Request(ctx, sg.GwUrl)
 	if err != nil {
 		return false, err
 	}
-	if res.Status != 2000 {
+	if res.ForbID == 1 && res.Status == 2001 {
 		return true, nil
 	}
 	return false, nil
 }
 
-func vosRewrite(ctx context.Context, enID int, callID, caller, callee string) (bool, error) {
+func dongYun(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller string, callee string) (bool, error) {
+	str := getPreSign(sg.GwAk, callID, sg.GwPass)
+	sign := utils.Encrypt(str)
+	req := &http.SysGatewayDongYun{
+		AK:     sg.GwAk,
+		CallID: callID,
+		Caller: caller,
+		Callee: callee,
+		Sign:   sign,
+	}
+	res, err := req.Request(ctx, sg.GwUrl)
+	if err != nil {
+		return false, err
+	}
+	if len(res.List) > 0 && res.List[0].Forbid == 1 {
+		return true, nil
+	}
+	return false, nil
+}
+
+func getPreSign(ak string, callID interface{}, sk string) string {
+	if id, ok := callID.(int64); ok {
+		return fmt.Sprintf("%s%d%s", ak, id, sk)
+	}
+	if id, ok := callID.(string); ok {
+		return fmt.Sprintf("%s%s%s", ak, id, sk)
+	}
+	if id, ok := callID.(float64); ok {
+		return fmt.Sprintf("%s%.0f%s", ak, id, sk)
+	}
+	return ""
+}
+
+func vosHTTP(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller string, callee string) (bool, error) {
+	req := &http.VOSHttpReq{
+		CallID: callID,
+		Caller: caller,
+		Callee: callee,
+	}
+	res, err := req.Request(ctx, sg.GwUrl)
+	if err != nil {
+		return false, err
+	}
+	if res.ForbID == 1 {
+		return true, nil
+	}
+	return false, nil
+}
+
+func vosRewrite(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller, callee string) (bool, error) {
 	req := &http.HuaXinBlackRewrite{}
 	req.RewriteE164Req.CallID = callID
 	req.RewriteE164Req.CallerE164 = caller
 	req.RewriteE164Req.CalleeE164 = callee
-	res, err := req.Request(ctx)
+	res, err := req.Request(ctx, sg.GwUrl)
 	if err != nil {
 		return false, err
 	}
-	if res.RewriteE164Rsp.Status != 2000 {
+	if res.RewriteE164Rsp.CalleeE164 != callee {
 		return true, nil
 	}
 	return false, nil

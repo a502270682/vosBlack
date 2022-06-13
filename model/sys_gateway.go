@@ -2,14 +2,15 @@ package model
 
 import (
 	"context"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type SysGatewayInfo struct {
 	NID         int       `json:"nid,omitempty" gorm:"column:nid"`
 	GwName      string    `json:"gw_name" gorm:"column:gw_name"`           // 网关名称
-	GwUrl       string    `json:"gw_url" gorm:"column:gw_url"`             //网关调用地址
+	GwUrl       string    `json:"gw_uri" gorm:"column:gw_uri"`             //网关调用地址
 	GwType      GwType    `json:"gw_type" gorm:"column:gw_type"`           // 网关类型
 	Priority    int       `json:"priority" gorm:"column:priority"`         // 优先级
 	BlackPrefix string    `json:"black_prefix" gorm:"column:black_prefix"` // 接口其他参数
