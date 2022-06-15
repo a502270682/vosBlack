@@ -123,18 +123,21 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 					Mobile: realCallee,
 					Forbid: 0,
 					Msg:    common.CommonMobileType,
+					Status: common.StatusOK,
 				})
 			} else if respStatus == common.OutOfFrequency {
 				syncList.AppendToArray(&proto.BlackDongYunDetail{
 					Mobile: realCallee,
 					Forbid: 2,
 					Msg:    common.OutMobileType,
+					Status: common.StatusOK,
 				})
 			} else {
 				syncList.AppendToArray(&proto.BlackDongYunDetail{
 					Mobile: realCallee,
 					Forbid: 1,
 					Msg:    common.SensitiveMobileType,
+					Status: respStatus,
 				})
 			}
 

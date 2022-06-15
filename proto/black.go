@@ -1,5 +1,7 @@
 package proto
 
+import "vosBlack/common"
+
 type BlackScreeningReq struct {
 	CallID interface{} `json:"callId"` // 呼叫标识
 	Callee string      `json:"callee"` // 被叫号码
@@ -46,13 +48,13 @@ type BlackDongYunRsp struct {
 	CallID        interface{}           `json:"callId"`        // 通话ID
 	TransactionID string                `json:"transactionId"` // 主叫号码
 	List          []*BlackDongYunDetail `json:"list"`          // 响应对象数组
-	Status        int                   `json:"status"`        //
 }
 
 type BlackDongYunDetail struct {
-	Mobile string `json:"mobile"` // 被叫号码
-	Forbid int    `json:"forbid"` // 0是正常号码 1是敏感号码 2是超频号码
-	Msg    string `json:"msg"`
+	Mobile string            `json:"mobile"` // 被叫号码
+	Forbid int               `json:"forbid"` // 0是正常号码 1是敏感号码 2是超频号码
+	Msg    string            `json:"msg"`
+	Status common.RespStatus `json:"status"` //
 }
 
 type CommonReq struct {
