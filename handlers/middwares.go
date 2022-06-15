@@ -38,8 +38,7 @@ func Error(c *gin.Context, respCode common.RespCode, respStatus common.RespStatu
 		c.JSON(http.StatusOK, res)
 	case common.SVOSHttp, common.DongyunHttp:
 		res := &proto.BlackDongYunRsp{
-			Code:   respCode.Int(),
-			Status: respStatus.Int(),
+			Code: respCode.Int(),
 		}
 		if resp != nil {
 			res.CallID = resp.CallID
