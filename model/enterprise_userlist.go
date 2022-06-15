@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+
 	"gorm.io/gorm"
 )
 
@@ -16,6 +17,8 @@ type EnterpriseUserlist struct {
 	IStatus     string `json:"i_status" gorm:"column:i_status"`       //状态，1启用，0停用，9暂停，-1删除
 	JoinDt      string `json:"join_dt" gorm:"column:join_dt"`         //
 	Remark      string `json:"remark" gorm:"column:remark"`
+	EnJkpass    string `json:"en_jkpass" gorm:"column:en_jkpass"`
+	EnJkak      string `json:"en_jkak" gorm:"column:en_jkak"`
 }
 
 func (EnterpriseUserlist) TableName() string {
@@ -29,7 +32,7 @@ type EnterpriseUserlistImpl struct {
 }
 
 type EnterpriseUserlistRepo interface {
-	GetByUserID(ctx context.Context, userID string) (*EnterpriseUserlist, error)
+	GetByAK(ctx context.Context, userID string) (*EnterpriseUserlist, error)
 }
 
 func InitEnterpriseUserlistRepo(d *gorm.DB) {
@@ -42,8 +45,8 @@ func GetEnterpriseUserlistImpl() EnterpriseUserlistRepo {
 	return enterpriseUserlist
 }
 
-func (e *EnterpriseUserlistImpl) GetByUserID(ctx context.Context, userID string) (*EnterpriseUserlist, error) {
+func (e *EnterpriseUserlistImpl) GetByAK(ctx context.Context, ak string) (*EnterpriseUserlist, error) {
 	res := &EnterpriseUserlist{}
-	err := e.DB.WithContext(ctx).Where("userid = ?", userID).First(res).Error
+	err := e.DB.WithContext(ctx).Where("en_jkak = ?", ak).First(res).Error
 	return res, err
 }

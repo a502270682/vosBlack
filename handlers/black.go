@@ -209,11 +209,11 @@ func parseDongyunParam(reqBody []byte) (*proto.CommonReq, error) {
 	if req.AK == "" {
 		return nil, common.ReqParamTypeError
 	}
-	user, err := service.GetUserByUserID(context.Background(), req.AK)
+	user, err := service.GetUserByAK(context.Background(), req.AK)
 	if err != nil {
 		return nil, err
 	}
-	if !checkSign(user.UserID, user.UserPass, req) {
+	if !checkSign(user.EnJkak, user.EnJkpass, req) {
 		return nil, common.SignError
 	}
 	res := &proto.CommonReq{

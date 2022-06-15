@@ -18,8 +18,8 @@ func GetCompanyByIP(ctx context.Context, ip string) (*model.EnterpriseIplist, er
 	return model.GetEnterpriseIplistImpl().GetOneByIP(ctx, ip)
 }
 
-func GetUserByUserID(ctx context.Context, userID string) (*model.EnterpriseUserlist, error) {
-	return model.GetEnterpriseUserlistImpl().GetByUserID(ctx, userID)
+func GetUserByAK(ctx context.Context, ak string) (*model.EnterpriseUserlist, error) {
+	return model.GetEnterpriseUserlistImpl().GetByAK(ctx, ak)
 }
 
 func GetEnterpriseFeelList(ctx context.Context, enID int) (*model.EnterpriseFeeList, error) {
