@@ -116,8 +116,8 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 		wg.Add(1)
 		go func(num string) {
 			defer wg.Done()
-			prefix, realCallee, phoneType := utils.GetPhone(req.Callee)
-			respStatus := service.CommonCheck(ctx, prefix, realCallee, enID, ipID, req.CallID, req.Caller, req.Callee, phoneType)
+			prefix, realCallee, phoneType := utils.GetPhone(num)
+			respStatus := service.CommonCheck(ctx, prefix, realCallee, enID, ipID, req.CallID, req.Caller, num, phoneType)
 			if respStatus == common.StatusOK {
 				syncList.AppendToArray(&proto.BlackDongYunDetail{
 					Mobile: realCallee,
