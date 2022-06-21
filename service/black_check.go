@@ -152,6 +152,12 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 		}
 		if isBlack {
 			gwHitCount = 1
+			tablePrefix := ""
+			if phoneType == 0 {
+				tablePrefix = "0"
+			} else {
+				tablePrefix = realCallee[:3]
+			}
 			// 插入数据库
 			err = model.GetMobileBlackApi().Insert(ctx, &model.MobileBlack{
 				Mobile:    realCallee[3:],
@@ -159,7 +165,7 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 				MbLevel:   0,
 				GwId:      sysGateway.NID,
 				EnID:      enID,
-			}, prefix)
+			}, tablePrefix)
 			if err != nil {
 				return common.SystemInternalError
 			}
