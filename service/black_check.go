@@ -51,6 +51,7 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 		}
 		return common.SystemInternalError
 	}
+	log.Infof(ctx, "current phone: %v,prefix: %v,blackRule :%+v", realCallee, prefix, blackRule)
 	var mbRequestCount, mbHitCount, wnHitCount, mpRequestCount, mpHitCount, gwRequestCount, gwHitCount, fqRequestCount, fqHitCount int64
 	defer func() {
 		mbRequestCount = 1
@@ -75,8 +76,10 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 		if isExist {
 			wnHitCount = 1
 			//logic.UpsertEnterpriseApplyHourList(ctx, enID, "", 1, 0, 1, 0, 0, 0, 0, 0, 0)
+			log.Infof(ctx, "current phone : %s in white list", realCallee)
 			return common.StatusOK
 		}
+		log.Infof(ctx, "current phone : %s not in white list", realCallee)
 	}
 	// 判断呼叫时间段
 	if blackRule.IsCalltime == 1 {
@@ -86,9 +89,11 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 		}
 		if err == nil && callTimeList != nil {
 			if !utils.IsReachTime(callTimeList.BeginHour, callTimeList.BeginMinute, callTimeList.EndHour, callTimeList.Edminute) {
+				log.Infof(ctx, "current phone : %s unreachable", realCallee)
 				return common.UnReachTime
 			}
 		}
+		log.Infof(ctx, "current phone : %s can reach", realCallee)
 	}
 	// 判断靓号
 	if blackRule.PatternLevel != -1 {
@@ -101,9 +106,11 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 			reg := pcre.MustCompile(value.Pattern, 0)
 			if len(reg.FindIndex([]byte(realCallee), 0)) > 0 {
 				mpHitCount = 1
+				log.Infof(ctx, "current phone : %s is pretty number", realCallee)
 				return common.PrettyNumber
 			}
 		}
+		log.Infof(ctx, "current phone : %s is not pretty number", realCallee)
 	}
 	// 判断本地黑名单
 	if blackRule.BlacknumLevel != -1 {
@@ -119,8 +126,10 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 		}
 		if mobile != nil && mobile.MobileAll == realCallee {
 			mbHitCount = 1
+			log.Infof(ctx, "current phone : %s is black mobile", realCallee)
 			return common.BlackMobile
 		}
+		log.Infof(ctx, "current phone : %s is not black mobile", realCallee)
 	}
 	if blackRule.IsFrequency == 1 {
 		if blackRule.CallCycle != -1 && blackRule.CallCount > 0 {
@@ -132,9 +141,11 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 			fqRequestCount = 1
 			if frequencyCount+1 > int64(blackRule.CallCount) {
 				fqHitCount = 1
+				log.Infof(ctx, "current phone : %s is out of frequency", realCallee)
 				return common.OutOfFrequency
 			}
 		}
+		log.Infof(ctx, "current phone : %s is not out of frequency", realCallee)
 	}
 	if blackRule.GatewayLevel != -1 {
 		//TODO 根据Gateway 调用第三方接口
@@ -169,6 +180,7 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 			if err != nil {
 				return common.SystemInternalError
 			}
+			log.Infof(ctx, "current phone : %s is third party black mobile", realCallee)
 			return common.BlackMobile
 		}
 	}
