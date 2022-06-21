@@ -39,6 +39,9 @@ func (s *EnterpriseApplyHourListJob) Run() {
 	now := time.Now().In(loc)
 	success := 0
 	hour := now.Hour() - 1
+	if now.Hour() == 0 {
+		hour = 23
+	}
 	hourStr := fmt.Sprintf("%02d", hour)
 	var failEid []int
 	for _, enterprise := range enterprises {
