@@ -169,16 +169,19 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 			} else {
 				tablePrefix = realCallee[:3]
 			}
-			// 插入数据库
-			err = model.GetMobileBlackApi().Insert(ctx, &model.MobileBlack{
-				Mobile:    realCallee[3:],
-				MobileAll: realCallee,
-				MbLevel:   0,
-				GwId:      sysGateway.NID,
-				EnID:      enID,
-			}, tablePrefix)
-			if err != nil {
-				return common.SystemInternalError
+			_, err := model.GetMobileBlackApi().GetOneByMobile(ctx, tablePrefix, realCallee)
+			if err != nil && err == gorm.ErrRecordNotFound {
+				// 插入数据库
+				err = model.GetMobileBlackApi().Insert(ctx, &model.MobileBlack{
+					Mobile:    realCallee[3:],
+					MobileAll: realCallee,
+					MbLevel:   0,
+					GwId:      sysGateway.NID,
+					EnID:      enID,
+				}, tablePrefix)
+				if err != nil {
+					return common.SystemInternalError
+				}
 			}
 			log.Infof(ctx, "current phone : %s is third party black mobile", realCallee)
 			return common.BlackMobile
