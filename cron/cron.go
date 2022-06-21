@@ -3,13 +3,14 @@ package cron
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/robfig/cron/v3"
-	"gorm.io/gorm"
 	"time"
 	"vosBlack/adapter/log"
 	"vosBlack/adapter/logic"
 	"vosBlack/model"
+
+	"github.com/pkg/errors"
+	"github.com/robfig/cron/v3"
+	"gorm.io/gorm"
 )
 
 var cronCtl Ctl
@@ -34,7 +35,8 @@ func (s *EnterpriseApplyHourListJob) Run() {
 		log.Warnf(ctx, "fail to get active enterprises, err:%+v", err)
 		return
 	}
-	now := time.Now()
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	now := time.Now().In(loc)
 	success := 0
 	var failEid []int
 	for _, enterprise := range enterprises {
