@@ -4,7 +4,7 @@ const (
 	vosBlackEnterpriseFrequencyKey     = "vos_black_enterprise_frequency:%d:%s"
 	syncVosBlackEnterpriseFrequencyKey = "sync_vos_black_enterprise_frequency:%d"
 	vosBlackGatewayHourListKey         = "vos_black_gw_hour_list:%d"
-	vosBlackEnterpriseHourListKey      = "vos_black_enterprise_hour_list:%d"
+	vosBlackEnterpriseHourListKey      = "vos_black_enterprise_hour_list:%d:%s"
 	vosBlackEnterpriseBlackListKey     = "vos_black_enterprise_black_list:%d:%s"
 	vosBlackEnterpriseCallTimeListKey  = "vos_black_enterprise_call_time_list:%d:%d"
 	vosBlackMobileWhitenumKey          = "vos_black_mobile_whitenum:%d:%s"

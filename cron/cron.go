@@ -38,9 +38,11 @@ func (s *EnterpriseApplyHourListJob) Run() {
 	loc, _ := time.LoadLocation("Asia/Shanghai")
 	now := time.Now().In(loc)
 	success := 0
+	hour := now.Hour() - 1
+	hourStr := fmt.Sprintf("%02d", hour)
 	var failEid []int
 	for _, enterprise := range enterprises {
-		field, err := logic.GetApplyHourListCache(ctx, enterprise.NID)
+		field, err := logic.GetApplyHourListCache(ctx, enterprise.NID, hourStr)
 		if err != nil || field == nil {
 			continue
 		}
@@ -52,7 +54,7 @@ func (s *EnterpriseApplyHourListJob) Run() {
 				RepYear:        now.Year(),
 				RepMonth:       int(now.Month()),
 				RepDay:         now.Day(),
-				RepHour:        now.Hour(),
+				RepHour:        hour,
 				MbRequestCount: field.MbRequestCount,
 				MbHitCount:     field.MbHitCount,
 				WnHitCount:     field.WnHitCount,
@@ -69,7 +71,7 @@ func (s *EnterpriseApplyHourListJob) Run() {
 			if err != nil {
 				return errors.Wrap(err, "upsert applyhourlist failed")
 			}
-			err = logic.DeleteApplyHourListCache(ctx, eID)
+			err = logic.DeleteApplyHourListCache(ctx, eID, hourStr)
 			if err != nil {
 				return errors.Wrap(err, "fail to DeleteApplyHourListCache")
 			}

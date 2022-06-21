@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
+	"time"
 	"vosBlack/adapter/redis"
+
+	"github.com/pkg/errors"
 )
 
 type ApplyHourListField struct {
@@ -22,24 +24,24 @@ type ApplyHourListField struct {
 	Remark         string `json:"remark" gorm:"column:remark"`                     // 备注
 }
 
-func applyHourListCacheKey(enID int) string {
-	return fmt.Sprintf(vosBlackEnterpriseHourListKey, enID)
+func applyHourListCacheKey(enID int, hour string) string {
+	return fmt.Sprintf(vosBlackEnterpriseHourListKey, enID, hour)
 }
 
-func SetApplyHourListCache(ctx context.Context, enID int, field *ApplyHourListField) error {
+func SetApplyHourListCache(ctx context.Context, enID int, hour string, field *ApplyHourListField) error {
 	value, err := json.Marshal(field)
 	if err != nil {
 		return errors.Wrap(err, "marshal apply_field failed")
 	}
-	err = redis.GetDefaultRedisClient().Set(ctx, applyHourListCacheKey(enID), string(value), 0).Err()
+	err = redis.GetDefaultRedisClient().Set(ctx, applyHourListCacheKey(enID, hour), string(value), 0).Err()
 	if err != nil {
 		return errors.Wrap(err, "set apply_field failed")
 	}
 	return nil
 }
 
-func GetApplyHourListCache(ctx context.Context, enID int) (*ApplyHourListField, error) {
-	result, err := redis.GetDefaultRedisClient().Get(ctx, applyHourListCacheKey(enID)).Result()
+func GetApplyHourListCache(ctx context.Context, enID int, hour string) (*ApplyHourListField, error) {
+	result, err := redis.GetDefaultRedisClient().Get(ctx, applyHourListCacheKey(enID, hour)).Result()
 	if err != nil {
 		if err == redis.ErrNil {
 			return nil, nil
@@ -54,8 +56,8 @@ func GetApplyHourListCache(ctx context.Context, enID int) (*ApplyHourListField, 
 	return ret, nil
 }
 
-func DeleteApplyHourListCache(ctx context.Context, enID int) error {
-	_, err := redis.GetDefaultRedisClient().Del(ctx, applyHourListCacheKey(enID)).Result()
+func DeleteApplyHourListCache(ctx context.Context, enID int, hour string) error {
+	_, err := redis.GetDefaultRedisClient().Del(ctx, applyHourListCacheKey(enID, hour)).Result()
 	if err != nil {
 		return err
 	}
@@ -64,7 +66,10 @@ func DeleteApplyHourListCache(ctx context.Context, enID int) error {
 
 // 新建或更新企业近期调用统计
 func UpsertEnterpriseApplyHourList(ctx context.Context, enID int, remark string, MbRequestCount, MbHitCount, WnHitCount, MpRequestCount, MpHitCount, GwRequestCount, GwHitCount, FqRequestCount, FqHitCount int64) error {
-	field, err := GetApplyHourListCache(ctx, enID)
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	timeNow := time.Now().In(loc)
+	hour := fmt.Sprintf("%02d", timeNow.Hour())
+	field, err := GetApplyHourListCache(ctx, enID, hour)
 	if err != nil {
 		return errors.Wrap(err, "redis get wrong")
 	}
@@ -82,7 +87,7 @@ func UpsertEnterpriseApplyHourList(ctx context.Context, enID int, remark string,
 			FqHitCount:     FqHitCount,
 			Remark:         remark,
 		}
-		return SetApplyHourListCache(ctx, enID, newField)
+		return SetApplyHourListCache(ctx, enID, hour, newField)
 	} else {
 		field.MbRequestCount += MbRequestCount
 		field.MbHitCount += MbHitCount
@@ -93,6 +98,6 @@ func UpsertEnterpriseApplyHourList(ctx context.Context, enID int, remark string,
 		field.GwHitCount += GwHitCount
 		field.FqRequestCount += FqRequestCount
 		field.FqHitCount += FqHitCount
-		return SetApplyHourListCache(ctx, enID, field)
+		return SetApplyHourListCache(ctx, enID, hour, field)
 	}
 }
