@@ -3,8 +3,9 @@ package model
 import (
 	"context"
 	"fmt"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type MobileBlack struct {
@@ -53,7 +54,11 @@ func GetMobileBlackApi() MobileBlackRepo {
 
 func (m *MobileBlackImpl) Insert(ctx context.Context, black *MobileBlack, prefix string) error {
 	tableName := fmt.Sprintf("mobile_black_%s", prefix)
-	err := m.DB.WithContext(ctx).Table(tableName).Create(black).Error
+	res := &MobileBlack{}
+	err := m.DB.WithContext(ctx).Table(tableName).Where("mobile_all = ?", black.MobileAll).First(res).Error
+	if err != nil && err == gorm.ErrRecordNotFound {
+		err = m.DB.WithContext(ctx).Table(tableName).Create(black).Error
+	}
 	return err
 }
 
