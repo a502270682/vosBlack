@@ -87,11 +87,19 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return common.SystemInternalError
 		}
-		if err == nil && callTimeList != nil {
-			if !utils.IsReachTime(callTimeList.BeginHour, callTimeList.BeginMinute, callTimeList.EndHour, callTimeList.Edminute) {
+		if err == nil && len(callTimeList) > 0 {
+			flag := false
+			for _, callTime := range callTimeList {
+				if utils.IsReachTime(callTime.BeginHour, callTime.BeginMinute, callTime.EndHour, callTime.Edminute) {
+					flag = true
+					break
+				}
+			}
+			if !flag {
 				log.Infof(ctx, "current phone : %s unreachable", realCallee)
 				return common.UnReachTime
 			}
+
 		}
 		log.Infof(ctx, "current phone : %s can reach", realCallee)
 	}
@@ -223,7 +231,7 @@ func vosHuaXin(ctx context.Context, sg *model.SysGatewayInfo, callID interface{}
 }
 
 func dongYun(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller string, callee string) (bool, error) {
-	str := getPreSign(sg.GwAk, callID, sg.GwPass)
+	str := GetPreSign(sg.GwAk, callID, sg.GwPass)
 	sign := utils.Encrypt(str)
 	req := &http.SysGatewayDongYun{
 		AK:     sg.GwAk,
@@ -242,7 +250,7 @@ func dongYun(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID int
 	return false, nil
 }
 
-func getPreSign(ak string, callID interface{}, sk string) string {
+func GetPreSign(ak string, callID interface{}, sk string) string {
 	if id, ok := callID.(int64); ok {
 		return fmt.Sprintf("%s%d%s", ak, id, sk)
 	}

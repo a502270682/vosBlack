@@ -3,13 +3,11 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync"
 	"vosBlack/adapter/log"
-	"vosBlack/adapter/logic"
 	"vosBlack/common"
 	"vosBlack/model"
 	"vosBlack/proto"
@@ -17,6 +15,7 @@ import (
 	"vosBlack/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 )
 
 func getClientIP(c *gin.Context) string {
@@ -33,8 +32,89 @@ type CommonRsp struct {
 	Status int
 }
 
+func BlackDongYunHandler(c *gin.Context) {
+	// 解析参数
+	param, err := parseParam(common.DongyunHttp, c)
+	if err != nil {
+		if err == common.SignError {
+			Error(c, common.SignErrorResp, common.NotFound, common.DongyunHttp, nil)
+		} else if err == common.ReqParamError {
+			Error(c, common.ParamError, common.NotFound, common.DongyunHttp, nil)
+		} else if err == common.ReqAKError {
+			Error(c, common.AKError, common.NotFound, common.DongyunHttp, nil)
+		} else if err == common.ReqParamTypeError {
+			Error(c, common.ParamTypeError, common.NotFound, common.DongyunHttp, nil)
+		} else {
+			Error(c, common.RespError, common.NotFound, common.DongyunHttp, nil)
+		}
+		// err = logic.UpsertEnterpriseApplyHourList(ctx, companyIPInfo.EnID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
+		// if err != nil {
+		// 	log.Warnf(ctx, "UpsertEnterpriseApplyHourList fail, err:%+v", err)
+		// }
+		return
+	}
+	// 校验算法
+	Check(c, param, common.DongyunHttp)
+}
+
+func BlackScreenHandler(c *gin.Context) {
+	param, err := parseParam(common.VOSRewrite, c)
+	if err != nil {
+		if err == common.SignError {
+			Error(c, common.SignErrorResp, common.NotFound, common.VOSRewrite, nil)
+		} else if err == common.ReqParamError {
+			Error(c, common.ParamError, common.NotFound, common.VOSRewrite, nil)
+		} else if err == common.ReqAKError {
+			Error(c, common.AKError, common.NotFound, common.VOSRewrite, nil)
+		} else if err == common.ReqParamTypeError {
+			Error(c, common.ParamTypeError, common.NotFound, common.VOSRewrite, nil)
+		} else {
+			Error(c, common.RespError, common.NotFound, common.VOSRewrite, nil)
+		}
+		// err = logic.UpsertEnterpriseApplyHourList(ctx, companyIPInfo.EnID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
+		// if err != nil {
+		// 	log.Warnf(ctx, "UpsertEnterpriseApplyHourList fail, err:%+v", err)
+		// }
+		return
+	}
+	// 校验算法
+	Check(c, param, common.VOSRewrite)
+}
+
 // 外部号码改写规则
 func BlackCheckHandler(c *gin.Context) {
+	param, err := parseParam(common.VOSHttp, c)
+	if err != nil {
+		if err == common.SignError {
+			Error(c, common.SignErrorResp, common.NotFound, common.VOSHttp, nil)
+		} else if err == common.ReqParamError {
+			Error(c, common.ParamError, common.NotFound, common.VOSHttp, nil)
+		} else if err == common.ReqAKError {
+			Error(c, common.AKError, common.NotFound, common.VOSHttp, nil)
+		} else if err == common.ReqParamTypeError {
+			Error(c, common.ParamTypeError, common.NotFound, common.VOSHttp, nil)
+		} else {
+			Error(c, common.RespError, common.NotFound, common.VOSHttp, nil)
+		}
+		// err = logic.UpsertEnterpriseApplyHourList(ctx, companyIPInfo.EnID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
+		// if err != nil {
+		// 	log.Warnf(ctx, "UpsertEnterpriseApplyHourList fail, err:%+v", err)
+		// }
+		return
+	}
+	// 校验算法
+	Check(c, param, common.VOSHttp)
+}
+
+func haveBalance(ctx context.Context, enID int) bool {
+	feel, err := service.GetEnterpriseFeelList(ctx, enID)
+	if err != nil {
+		return false
+	}
+	return feel.FeeIncome-feel.FeePayout > float64(0-feel.FeeCredit)
+}
+
+func Check(c *gin.Context, req *proto.CommonReq, inputType int) {
 	ctx := c.Request.Context()
 	ip := getClientIP(c)
 	// 根据ip获取企业信息
@@ -47,45 +127,13 @@ func BlackCheckHandler(c *gin.Context) {
 		})
 		return
 	}
-	// 解析参数
-	param, err := parseParam(companyIPInfo.Inputtype, c)
-	if err != nil {
-		if err == common.SignError {
-			Error(c, common.SignErrorResp, common.NotFound, companyIPInfo.Inputtype, nil)
-		} else if err == common.ReqParamError {
-			Error(c, common.ParamError, common.NotFound, companyIPInfo.Inputtype, nil)
-		} else if err == common.ReqAKError {
-			Error(c, common.AKError, common.NotFound, companyIPInfo.Inputtype, nil)
-		} else if err == common.ReqParamTypeError {
-			Error(c, common.ParamTypeError, common.NotFound, companyIPInfo.Inputtype, nil)
-		} else {
-			Error(c, common.RespError, common.NotFound, companyIPInfo.Inputtype, nil)
-		}
-		err = logic.UpsertEnterpriseApplyHourList(ctx, companyIPInfo.EnID, "", 1, 0, 0, 0, 0, 0, 0, 0, 0)
-		if err != nil {
-			log.Warnf(ctx, "UpsertEnterpriseApplyHourList fail, err:%+v", err)
-		}
-		return
-	}
+	enID := companyIPInfo.EnID
+	ipID := companyIPInfo.NID
 	// 判断余额
-	if !haveBalance(ctx, companyIPInfo.EnID) {
-		Error(c, common.RespError, common.NoBalance, companyIPInfo.Inputtype, param)
+	if !haveBalance(ctx, enID) {
+		Error(c, common.RespError, common.NoBalance, inputType, req)
 		return
 	}
-	// 校验算法
-	Check(c, param, companyIPInfo.Inputtype, companyIPInfo.NID, companyIPInfo.EnID)
-	return
-}
-
-func haveBalance(ctx context.Context, enID int) bool {
-	feel, err := service.GetEnterpriseFeelList(ctx, enID)
-	if err != nil {
-		return false
-	}
-	return feel.FeeIncome-feel.FeePayout > float64(0-feel.FeeCredit)
-}
-
-func Check(c *gin.Context, req *proto.CommonReq, inputType, ipID, enID int) {
 	switch inputType {
 	case common.VOSRewrite, common.VOSHttp:
 		standloneCheck(c, req, inputType, ipID, enID)
@@ -106,6 +154,17 @@ func (sl *SyncList) AppendToArray(detail *proto.BlackDongYunDetail) {
 }
 
 func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
+	defer func() {
+		if err := recover(); err != nil {
+			if e, ok := err.(error); ok {
+				log.Errorf(context.Background(), "panic :%v", errors.WithStack(e))
+			} else {
+				log.Errorf(context.Background(), "panic :%v", err)
+			}
+			Error(c, common.RespError, common.NotFound, common.DongyunHttp, req)
+			return
+		}
+	}()
 	ctx := c.Request.Context()
 	calleeArr := strings.Split(req.Callee, ",")
 	wg := sync.WaitGroup{}
@@ -116,6 +175,20 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 		wg.Add(1)
 		go func(num string) {
 			defer wg.Done()
+			defer func() {
+				if err := recover(); err != nil {
+					if e, ok := err.(error); ok {
+						log.Errorf(context.Background(), "panic :%v", errors.WithStack(e))
+					} else {
+						log.Errorf(context.Background(), "panic :%v", err)
+					}
+					syncList.AppendToArray(&proto.BlackDongYunDetail{
+						Mobile: num,
+						Msg:    "电话号异常",
+						Status: -1,
+					})
+				}
+			}()
 			prefix, realCallee, phoneType := utils.GetPhone(num)
 			respStatus := service.CommonCheck(ctx, prefix, realCallee, enID, ipID, req.CallID, req.Caller, num, phoneType)
 			if respStatus == common.StatusOK {
@@ -130,7 +203,7 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 					Mobile: realCallee,
 					Forbid: 2,
 					Msg:    common.OutMobileType,
-					Status: common.StatusOK,
+					Status: common.OutOfFrequency,
 				})
 			} else {
 				syncList.AppendToArray(&proto.BlackDongYunDetail{
@@ -155,6 +228,17 @@ func loopCheck(c *gin.Context, req *proto.CommonReq, ipID int, enID int) {
 }
 
 func standloneCheck(c *gin.Context, req *proto.CommonReq, inputType int, ipID int, enID int) {
+	defer func() {
+		if err := recover(); err != nil {
+			if e, ok := err.(error); ok {
+				log.Errorf(context.Background(), "panic :%v", errors.WithStack(e))
+			} else {
+				log.Errorf(context.Background(), "panic :%v", err)
+			}
+			Error(c, common.RespError, common.NotFound, inputType, req)
+			return
+		}
+	}()
 	ctx := c.Request.Context()
 	prefix, realCallee, phoneType := utils.GetPhone(req.Callee)
 	respStatus := service.CommonCheck(ctx, prefix, realCallee, enID, ipID, req.CallID, req.Caller, req.Callee, phoneType)
@@ -228,7 +312,7 @@ func parseDongyunParam(reqBody []byte) (*proto.CommonReq, error) {
 }
 
 func checkSign(userID string, pass string, req proto.BlackDongYunReq) bool {
-	str := fmt.Sprintf("%s%s%s", userID, req.CallID, pass)
+	str := service.GetPreSign(userID, req.CallID, pass)
 	return utils.Encrypt(str) == req.Sign
 }
 

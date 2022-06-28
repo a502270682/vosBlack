@@ -11,8 +11,8 @@ import (
 func routes(engine *gin.Engine) {
 	black := engine.Group("/black")
 	black.POST("/check", handlers.BlackCheckHandler)
-	black.POST("/screening", handlers.BlackCheckHandler)
-	black.POST("/dongyun", handlers.BlackCheckHandler)
+	black.POST("/screening", handlers.BlackScreenHandler)
+	black.POST("/dongyun", handlers.BlackDongYunHandler)
 	//手机号黑名单管理功能
 	admin := engine.Group("/admin")
 	route.Route(admin, http.MethodPost, "/blackMobile/add", handlers.BlackMobileAddHandler)

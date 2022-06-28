@@ -34,6 +34,9 @@ func GetPhone(callee string) (prefix, realCallee string, phoneType int) {
 	}
 	matchs := FindStringSubmatch(callee)
 	if matchs[6] != "" && matchs[7] != "" {
+		if len(matchs[6]) != 3 {
+			return matchs[6][:3], matchs[7], 1
+		}
 		return matchs[6], matchs[7], 1
 	}
 	prefix = callee[:3]

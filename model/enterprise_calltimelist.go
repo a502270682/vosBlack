@@ -2,8 +2,9 @@ package model
 
 import (
 	"context"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // EnterpriseCalltimelist 呼叫时段
@@ -37,7 +38,7 @@ func InitEnterpriseCalltimelistRepo(db *gorm.DB) {
 }
 
 type EnterpriseCalltimelistRepo interface {
-	GetByEnID(ctx context.Context, enID int, blackID int) (*EnterpriseCalltimelist, error)
+	GetByEnID(ctx context.Context, enID int, blackID int) ([]*EnterpriseCalltimelist, error)
 	GetAll(ctx context.Context) ([]*EnterpriseCalltimelist, error)
 }
 
@@ -45,12 +46,12 @@ func GetEnterpriseCalltimelistImpl() EnterpriseCalltimelistRepo {
 	return enterpriseCalltimelistImpl
 }
 
-func (e *EnterpriseCalltimelistImpl) GetByEnID(ctx context.Context, enID int, blackID int) (*EnterpriseCalltimelist, error) {
-	res := &EnterpriseCalltimelist{}
+func (e *EnterpriseCalltimelistImpl) GetByEnID(ctx context.Context, enID int, blackID int) ([]*EnterpriseCalltimelist, error) {
+	res := []*EnterpriseCalltimelist{}
 	err := e.DB.WithContext(ctx).
 		Where("en_id = ?", enID).
 		Where("black_id = ?", blackID).
-		First(res).Error
+		Find(&res).Error
 	return res, err
 }
 

@@ -13,7 +13,7 @@ func enterpriseCallTimeListKey(ipID int, blackID int) string {
 	return fmt.Sprintf(vosBlackEnterpriseCallTimeListKey, ipID, blackID)
 }
 
-func GetEnterpriseCallTimeListWithCache(ctx context.Context, enID int, blackID int) (*model.EnterpriseCalltimelist, error) {
+func GetEnterpriseCallTimeListWithCache(ctx context.Context, enID int, blackID int) ([]*model.EnterpriseCalltimelist, error) {
 	res, err := redis.GetDefaultRedisClient().Get(ctx, enterpriseCallTimeListKey(enID, blackID)).Result()
 	if err != nil && err != redis.ErrNil {
 		return nil, err
@@ -31,7 +31,7 @@ func GetEnterpriseCallTimeListWithCache(ctx context.Context, enID int, blackID i
 		}
 		return calltimelist, nil
 	}
-	var ret *model.EnterpriseCalltimelist
+	var ret []*model.EnterpriseCalltimelist
 	err = json.Unmarshal([]byte(res), &ret)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func GetEnterpriseCallTimeListWithCache(ctx context.Context, enID int, blackID i
 	return ret, nil
 }
 
-func SetEnterpriseCallTimeListCache(ctx context.Context, enID int, blackID int, calltimelist *model.EnterpriseCalltimelist) error {
+func SetEnterpriseCallTimeListCache(ctx context.Context, enID int, blackID int, calltimelist []*model.EnterpriseCalltimelist) error {
 	res, err := json.Marshal(calltimelist)
 	if err != nil {
 		return err

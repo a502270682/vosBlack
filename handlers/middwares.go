@@ -23,7 +23,9 @@ func Error(c *gin.Context, respCode common.RespCode, respStatus common.RespStatu
 		}
 		if resp != nil {
 			res.CallID = resp.CallID
-			res.ForbID = 1
+			if respStatus != common.NotFound {
+				res.ForbID = 1
+			}
 		}
 		c.JSON(http.StatusOK, res)
 	case common.VOSHttp:

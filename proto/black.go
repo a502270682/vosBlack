@@ -11,7 +11,7 @@ type BlackScreeningReq struct {
 type BlackScreeningRsp struct {
 	Code   int         `json:"code"`
 	CallID interface{} `json:"callId"`
-	ForbID int         `json:"forbid"`
+	ForbID int         `json:"forbid,omitempty"`
 	Status int         `json:"status"`
 }
 
@@ -51,8 +51,8 @@ type BlackDongYunRsp struct {
 }
 
 type BlackDongYunDetail struct {
-	Mobile string            `json:"mobile"` // 被叫号码
-	Forbid int               `json:"forbid"` // 0是正常号码 1是敏感号码 2是超频号码
+	Mobile string            `json:"mobile"`           // 被叫号码
+	Forbid int               `json:"forbid,omitempty"` // 0是正常号码 1是敏感号码 2是超频号码
 	Msg    string            `json:"msg"`
 	Status common.RespStatus `json:"status"` //
 }
