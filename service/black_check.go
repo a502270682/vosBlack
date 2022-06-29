@@ -244,6 +244,7 @@ func dongYun(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID int
 	if err != nil {
 		return false, err
 	}
+	log.Infof(ctx, "dongyun response: %+v", res)
 	if len(res.List) > 0 && res.List[0].Forbid == 1 {
 		return true, nil
 	}

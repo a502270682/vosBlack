@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 	"vosBlack/adapter/log"
 	"vosBlack/proto"
 )
@@ -32,7 +33,7 @@ type HuaXinBlackCheck struct {
 
 type HuaXinResponse struct {
 	CallID  interface{} `json:"callId"`
-	ForbID  int         `json:"forbID"`
+	ForbID  int         `json:"forbid"`
 	Message string      `json:"message"`
 	Status  int         `json:"status"`
 }
@@ -97,6 +98,7 @@ func PostJson(ctx context.Context, url string, req, res interface{}) error {
 	}
 	request.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
+	client.Timeout = 2 * time.Second
 	resp, err := client.Do(request)
 	if err != nil {
 		return err
