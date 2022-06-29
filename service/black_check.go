@@ -192,7 +192,7 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 				}
 			}
 			log.Infof(ctx, "current phone : %s is third party black mobile", realCallee)
-			return common.BlackMobile
+			return common.SystemGatewayBlackMobile
 		}
 	}
 	return common.StatusOK

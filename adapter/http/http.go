@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"vosBlack/adapter/log"
 	"vosBlack/proto"
 )
 
@@ -102,6 +103,7 @@ func PostJson(ctx context.Context, url string, req, res interface{}) error {
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
+	log.Infof(ctx, "post json response: %s", string(body))
 	err = json.Unmarshal(body, res)
 	return err
 }
