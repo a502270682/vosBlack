@@ -43,8 +43,11 @@ func TestCache(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if ecl.TimeName != "全天" {
-		t.Fatal(fmt.Sprintf("ecl: should get(%s), but get(%s)", "全天", ecl.TimeName))
+	for _, e := range ecl {
+		if e.TimeName != "全天" {
+			t.Fatal(fmt.Sprintf("ecl: should get(%s), but get(%s)", "全天", e.TimeName))
+		}
 	}
+
 	t.Log("success")
 }

@@ -114,7 +114,7 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 			reg := pcre.MustCompile(value.Pattern, 0)
 			if len(reg.FindIndex([]byte(realCallee), 0)) > 0 {
 				mpHitCount = 1
-				log.Infof(ctx, "current phone : %s is pretty number", realCallee)
+				log.Infof(ctx, "current phone : %s is pretty number rule_i is :%d ,mb_level: %d", realCallee, value.NID, value.MbLevel)
 				return common.PrettyNumber
 			}
 		}

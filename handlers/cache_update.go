@@ -2,6 +2,9 @@ package handlers
 
 import (
 	"context"
+	"fmt"
+	"strconv"
+	"strings"
 	"vosBlack/adapter/error_code"
 	"vosBlack/adapter/log"
 	"vosBlack/adapter/logic"
@@ -27,8 +30,16 @@ func CacheUpdate(ctx context.Context, req *proto.CacheUpdateReq, rsp *proto.Cach
 	if err != nil {
 		log.Warnf(ctx, "GetEnterpriseCalltimelistImpl failed, err:%s", err.Error())
 	}
+	callMap := map[string][]*model.EnterpriseCalltimelist{}
 	for _, e := range enterpriseCallLists {
-		err = logic.SetEnterpriseCallTimeListCache(ctx, e.EnID, e.BlackID, e)
+		key := fmt.Sprintf("%d-%d", e.EnID, e.BlackID)
+		callMap[key] = append(callMap[key], e)
+	}
+	for key, val := range callMap {
+		arr := strings.Split(key, "-")
+		enID, _ := strconv.Atoi(arr[0])
+		blackID, _ := strconv.Atoi(arr[1])
+		err = logic.SetEnterpriseCallTimeListCache(ctx, enID, blackID, val)
 		if err != nil {
 			log.Warnf(ctx, "SetEnterpriseCallTimeListCache failed, err:%s", err.Error())
 			continue
