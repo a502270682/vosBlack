@@ -165,30 +165,32 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 			return common.SystemInternalError
 		}
 		gwRequestCount = 1
-		isBlack, err := requestSysGateway(ctx, enID, sysGateway, callID, caller, callee)
+		isBlack, needWrite, err := requestSysGateway(ctx, enID, sysGateway, callID, caller, callee)
 		if err != nil {
 			log.Errorf(ctx, "requestSysGateway error : callID: %s caller: %s callee: %s sysGateway : %+v err: %+v", callID, caller, callee, sysGateway, err)
 		}
 		if isBlack {
 			gwHitCount = 1
-			tablePrefix := ""
-			if phoneType == 0 {
-				tablePrefix = "0"
-			} else {
-				tablePrefix = realCallee[:3]
-			}
-			_, err := model.GetMobileBlackApi().GetOneByMobile(ctx, tablePrefix, realCallee)
-			if err != nil && err == gorm.ErrRecordNotFound {
-				// 插入数据库
-				err = model.GetMobileBlackApi().Insert(ctx, &model.MobileBlack{
-					Mobile:    realCallee[3:],
-					MobileAll: realCallee,
-					MbLevel:   0,
-					GwId:      sysGateway.NID,
-					EnID:      enID,
-				}, tablePrefix)
-				if err != nil {
-					return common.SystemInternalError
+			if needWrite {
+				tablePrefix := ""
+				if phoneType == 0 {
+					tablePrefix = "0"
+				} else {
+					tablePrefix = realCallee[:3]
+				}
+				_, err := model.GetMobileBlackApi().GetOneByMobile(ctx, tablePrefix, realCallee)
+				if err != nil && err == gorm.ErrRecordNotFound {
+					// 插入数据库
+					err = model.GetMobileBlackApi().Insert(ctx, &model.MobileBlack{
+						Mobile:    realCallee[3:],
+						MobileAll: realCallee,
+						MbLevel:   0,
+						GwId:      sysGateway.NID,
+						EnID:      enID,
+					}, tablePrefix)
+					if err != nil {
+						return common.SystemInternalError
+					}
 				}
 			}
 			log.Infof(ctx, "current phone : %s is third party black mobile", realCallee)
@@ -198,23 +200,23 @@ func CommonCheck(ctx context.Context, prefix, realCallee string, enID, ipID int,
 	return common.StatusOK
 }
 
-func requestSysGateway(ctx context.Context, enID int, sg *model.SysGatewayInfo, callID interface{}, caller, callee string) (bool, error) {
-	var isBlack bool
+func requestSysGateway(ctx context.Context, enID int, sg *model.SysGatewayInfo, callID interface{}, caller, callee string) (bool, bool, error) {
+	var isBlack, needWrite bool
 	var err error
 	switch sg.GwType {
 	case model.GwTypeVosHTTP:
-		isBlack, err = vosHTTP(ctx, sg, enID, callID, caller, callee)
+		isBlack, needWrite, err = vosHTTP(ctx, sg, enID, callID, caller, callee)
 	case model.GwTypeVosRewrite:
-		isBlack, err = vosRewrite(ctx, sg, enID, callID, caller, callee)
+		isBlack, needWrite, err = vosRewrite(ctx, sg, enID, callID, caller, callee)
 	case model.GwTypeDongyunBlack:
-		isBlack, err = dongYun(ctx, sg, enID, callID, caller, callee)
+		isBlack, needWrite, err = dongYun(ctx, sg, enID, callID, caller, callee)
 	case model.GwTypeHuaxinVosBlack:
-		isBlack, err = vosHuaXin(ctx, sg, callID, caller, callee)
+		isBlack, needWrite, err = vosHuaXin(ctx, sg, callID, caller, callee)
 	}
-	return isBlack, err
+	return isBlack, needWrite, err
 }
 
-func vosHuaXin(ctx context.Context, sg *model.SysGatewayInfo, callID interface{}, caller, callee string) (bool, error) {
+func vosHuaXin(ctx context.Context, sg *model.SysGatewayInfo, callID interface{}, caller, callee string) (bool, bool, error) {
 	req := &http.HuaXinBlackCheck{
 		CallID: callID,
 		Caller: caller,
@@ -222,15 +224,20 @@ func vosHuaXin(ctx context.Context, sg *model.SysGatewayInfo, callID interface{}
 	}
 	res, err := req.Request(ctx, sg.GwUrl)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
-	if res.ForbID == 1 && res.Status == 2001 {
-		return true, nil
+	if res.ForbID == 1 {
+		if res.Status == 2001 {
+			return true, true, nil
+		} else if res.Status >= 2002 && res.Status <= 2008 {
+			return true, false, nil
+		}
+
 	}
-	return false, nil
+	return false, false, nil
 }
 
-func dongYun(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller string, callee string) (bool, error) {
+func dongYun(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller string, callee string) (bool, bool, error) {
 	str := GetPreSign(sg.GwAk, callID, sg.GwPass)
 	sign := utils.Encrypt(str)
 	req := &http.SysGatewayDongYun{
@@ -242,13 +249,17 @@ func dongYun(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID int
 	}
 	res, err := req.Request(ctx, sg.GwUrl)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 	log.Infof(ctx, "dongyun response: %+v", res)
-	if len(res.List) > 0 && res.List[0].Forbid == 1 {
-		return true, nil
+	if len(res.List) > 0 {
+		if res.List[0].Forbid == 1 {
+			return true, true, nil
+		} else if res.List[0].Forbid > 1 {
+			return true, false, nil
+		}
 	}
-	return false, nil
+	return false, false, nil
 }
 
 func GetPreSign(ak string, callID interface{}, sk string) string {
@@ -264,7 +275,7 @@ func GetPreSign(ak string, callID interface{}, sk string) string {
 	return ""
 }
 
-func vosHTTP(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller string, callee string) (bool, error) {
+func vosHTTP(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller string, callee string) (bool, bool, error) {
 	req := &http.VOSHttpReq{
 		CallID: callID,
 		Caller: caller,
@@ -272,25 +283,28 @@ func vosHTTP(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID int
 	}
 	res, err := req.Request(ctx, sg.GwUrl)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 	if res.ForbID == 1 {
-		return true, nil
+		return true, true, nil
 	}
-	return false, nil
+	if res.ForbID > 1 {
+		return true, false, nil
+	}
+	return false, false, nil
 }
 
-func vosRewrite(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller, callee string) (bool, error) {
+func vosRewrite(ctx context.Context, sg *model.SysGatewayInfo, enID int, callID interface{}, caller, callee string) (bool, bool, error) {
 	req := &http.HuaXinBlackRewrite{}
 	req.RewriteE164Req.CallID = callID
 	req.RewriteE164Req.CallerE164 = caller
 	req.RewriteE164Req.CalleeE164 = callee
 	res, err := req.Request(ctx, sg.GwUrl)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 	if res.RewriteE164Rsp.CalleeE164 != callee {
-		return true, nil
+		return true, true, nil
 	}
-	return false, nil
+	return false, false, nil
 }
