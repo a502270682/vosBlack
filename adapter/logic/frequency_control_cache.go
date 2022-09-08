@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 	"vosBlack/adapter/log"
 	"vosBlack/adapter/redis"
 	"vosBlack/utils"
@@ -45,6 +46,7 @@ func AddEnterpriseFqCache(ctx context.Context, enID int, phone string, dayStamp 
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("enID(%d) set enterprise_fq_count failed", enID))
 	}
+	redis.GetDefaultRedisClient().Expire(ctx, enterpriseFqHashMapKey(enID, phone), 86400*7*time.Second)
 	return nil
 }
 
